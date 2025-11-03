@@ -26,6 +26,9 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+nouveau*.txt
+nul
+./claude/*
 
 # Build outputs
 dist
