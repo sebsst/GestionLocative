@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gestion-locative-db
+    environment:
+      POSTGRES_DB: gestion_locative
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gestion-locative-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gestion-locative-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/gestion_locative
+      JWT_SECRET: your-secret-key-change-in-production
+      PORT: 3000
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: your-email@gmail.com
+      SMTP_PASS: your-email-password
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - gestion-locative-network
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gestion-locative-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gestion-locative-network
+
+volumes:
+  postgres_data:
+
+networks:
+  gestion-locative-network:
+    driver: bridge
