@@ -735,6 +735,58 @@
         <Button label="Enregistrer" icon="pi pi-check" @click="updateLease" :loading="updatingLease" class="p-button-rounded" />
       </template>
     </Dialog>
+
+    <!-- Dialog Modification Propriété -->
+    <Dialog
+      v-model:visible="showEditPropertyDialog"
+      header="Modifier la propriété"
+      :modal="true"
+      :style="{ width: '600px', maxHeight: '90vh' }"
+      class="modern-dialog"
+    >
+      <div class="modern-form" style="max-height: 60vh; overflow-y: auto;">
+        <div class="p-field">
+          <label><i class="pi pi-tag"></i> Nom du bien *</label>
+          <InputText v-model="propertyForm.name" required class="w-full" />
+        </div>
+        <div class="p-field">
+          <label><i class="pi pi-map-marker"></i> Adresse *</label>
+          <InputText v-model="propertyForm.address" required class="w-full" />
+        </div>
+        <div class="p-field-group">
+          <div class="p-field">
+            <label><i class="pi pi-building"></i> Ville *</label>
+            <InputText v-model="propertyForm.city" required class="w-full" />
+          </div>
+          <div class="p-field">
+            <label><i class="pi pi-map"></i> Code postal *</label>
+            <InputText v-model="propertyForm.postalCode" required class="w-full" />
+          </div>
+        </div>
+        <div class="p-field-group">
+          <div class="p-field">
+            <label><i class="pi pi-th-large"></i> Surface (m²)</label>
+            <InputNumber v-model="propertyForm.surface" :min="0" class="w-full" />
+          </div>
+          <div class="p-field">
+            <label><i class="pi pi-th-large"></i> Pièces</label>
+            <InputNumber v-model="propertyForm.rooms" :min="0" class="w-full" />
+          </div>
+        </div>
+        <div class="p-field">
+          <label><i class="pi pi-euro"></i> Loyer actuel (€)</label>
+          <InputNumber v-model="propertyForm.currentRent" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
+        </div>
+        <div class="p-field">
+          <label><i class="pi pi-align-left"></i> Description</label>
+          <Textarea v-model="propertyForm.description" rows="3" class="w-full" />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Annuler" @click="showEditPropertyDialog = false" class="p-button-text" />
+        <Button label="Enregistrer" icon="pi pi-check" @click="updateProperty" :loading="updatingProperty" class="p-button-rounded" />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -771,10 +823,12 @@ const showNewLeaseDialog = ref(false)
 const showRentHistoryDialog = ref(false)
 const showEditTenantDialog = ref(false)
 const showEditLeaseDialog = ref(false)
+const showEditPropertyDialog = ref(false)
 const savingLease = ref(false)
 const savingRentHistory = ref(false)
 const savingTenant = ref(false)
 const updatingLease = ref(false)
+const updatingProperty = ref(false)
 
 const leaseForm = reactive({
   propertyId: route.params.id,
@@ -817,6 +871,17 @@ const editLeaseForm = reactive({
   deposit: null,
   numberOfOccupants: 1,
   notes: ''
+})
+
+const propertyForm = reactive({
+  name: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  surface: null,
+  rooms: null,
+  currentRent: null,
+  description: ''
 })
 
 const currentLease = computed(() => {
@@ -1023,7 +1088,43 @@ const updateLease = async () => {
 }
 
 const editProperty = () => {
-  // Navigate to edit
+  if (property.value) {
+    Object.assign(propertyForm, {
+      name: property.value.name,
+      address: property.value.address,
+      city: property.value.city,
+      postalCode: property.value.postalCode,
+      surface: property.value.surface,
+      rooms: property.value.rooms,
+      currentRent: property.value.currentRent,
+      description: property.value.description || ''
+    })
+    showEditPropertyDialog.value = true
+  }
+}
+
+const updateProperty = async () => {
+  updatingProperty.value = true
+  try {
+    await api.put(`/api/properties/${property.value.id}`, propertyForm)
+    toast.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: 'Propriété modifiée avec succès',
+      life: 3000
+    })
+    showEditPropertyDialog.value = false
+    loadProperty()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de modifier la propriété',
+      life: 3000
+    })
+  } finally {
+    updatingProperty.value = false
+  }
 }
 
 const getStatusSeverity = (status) => {
@@ -1728,6 +1829,57 @@ onMounted(() => {
 
 .mb-3 {
   margin-bottom: 1.5rem;
+}
+
+/* Mode sombre */
+.dark-mode .stat-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .stat-label {
+  color: #94a3b8;
+}
+
+.dark-mode .stat-value,
+.dark-mode .stat-value-small {
+  color: #f1f5f9;
+}
+
+.dark-mode .modern-tabs :deep(.p-tabview-nav) {
+  background: #1e293b;
+}
+
+.dark-mode .modern-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark-mode .modern-card :deep(.p-card-title) {
+  color: #f1f5f9;
+}
+
+.dark-mode .info-label,
+.dark-mode .lease-label,
+.dark-mode .rent-stat-label {
+  color: #94a3b8;
+}
+
+.dark-mode .info-value,
+.dark-mode .lease-value,
+.dark-mode .rent-stat-value,
+.dark-mode .rent-stat-value-small {
+  color: #f1f5f9;
+}
+
+.dark-mode .card-title-icon i {
+  color: #60a5fa;
+}
+
+.dark-mode .modern-dialog :deep(.p-dialog-content) {
+  background: #1e293b;
+  color: #e2e8f0;
 }
 
 /* Responsive */

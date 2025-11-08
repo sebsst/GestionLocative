@@ -196,10 +196,10 @@
       v-model:visible="showDialog"
       :header="editingProperty ? 'Modifier le bien' : 'Nouveau bien'"
       :modal="true"
-      :style="{ width: '700px' }"
+      :style="{ width: '600px', maxHeight: '90vh' }"
       class="modern-dialog"
     >
-      <div class="property-form">
+      <div class="property-form" style="max-height: 60vh; overflow-y: auto;">
         <div class="p-field">
           <label><i class="pi pi-tag"></i> Nom du bien *</label>
           <InputText v-model="form.name" required class="w-full" placeholder="Ex: Appartement Centre-ville" />
@@ -258,7 +258,7 @@
         </div>
         <div class="p-field">
           <label><i class="pi pi-align-left"></i> Description</label>
-          <Textarea v-model="form.description" rows="4" class="w-full" placeholder="Description du bien..." />
+          <Textarea v-model="form.description" rows="2" class="w-full" placeholder="Description du bien..." />
         </div>
         <div class="p-field-group">
           <div class="p-field">

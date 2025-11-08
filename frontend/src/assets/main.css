@@ -166,13 +166,14 @@ h1, h2, h3 {
 
 /* En-tête de page moderne */
 .page-header-modern {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
 }
 
 .page-header-modern .page-title-modern,
 .page-header-modern .subtitle-modern {
   color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-weight: 700 !important;
 }
 
 /* Boutons */
@@ -343,13 +344,14 @@ h1, h2, h3 {
 
 /* En-tête et navigation */
 .dark-mode .page-header-modern {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
 }
 
 .dark-mode .page-header-modern .page-title-modern,
 .dark-mode .page-header-modern .subtitle-modern {
   color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  font-weight: 700 !important;
 }
 
 .dark-mode .filters-modern {
