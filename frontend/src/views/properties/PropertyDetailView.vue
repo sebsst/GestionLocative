@@ -1,790 +1,651 @@
 <template>
-  <div class="property-detail">
-    <Button
-      icon="pi pi-arrow-left"
-      label="Retour"
-      class="p-button-text p-button-lg back-button"
+  <div class="p-8">
+    <!-- Back Button -->
+    <button
       @click="$router.back()"
-    />
+      class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      <span class="font-medium">Retour</span>
+    </button>
 
-    <div v-if="loading" class="loading">
-      <ProgressSpinner />
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
     </div>
 
-    <div v-else-if="property" class="content-wrapper">
-      <!-- En-tête avec titre et actions -->
-      <div class="page-header-modern">
-        <div class="header-content">
-          <div class="title-section">
-            <h1 class="page-title-modern">{{ property.name }}</h1>
-            <div class="subtitle-modern">
-              <i class="pi pi-map-marker"></i>
-              <span>{{ property.address }}, {{ property.city }}</span>
-            </div>
+    <!-- Content -->
+    <div v-else-if="property" class="space-y-6">
+      <!-- Header -->
+      <div class="card">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ property.name }}</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {{ property.address }}, {{ property.postalCode }} {{ property.city }}
+            </p>
           </div>
-          <Button
-            label="Modifier"
-            icon="pi pi-pencil"
-            class="p-button-rounded p-button-lg"
+          <button
             @click="editProperty"
-          />
+            class="btn-primary flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Modifier
+          </button>
         </div>
-        <Tag
-          :value="property.status"
-          :severity="getStatusSeverity(property.status)"
-          class="status-tag-large"
-        />
+        <span
+          :class="getStatusClass(property.status)"
+          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+        >
+          {{ getStatusLabel(property.status) }}
+        </span>
       </div>
 
-      <!-- Cartes de résumé -->
-      <div class="summary-cards">
-        <div class="stat-card stat-card-primary">
-          <div class="stat-icon">
-            <i class="pi pi-euro"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Loyer actuel</div>
-            <div class="stat-value">{{ formatCurrency(property.currentRent) }}</div>
-          </div>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="card">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Loyer actuel</p>
+          <p class="text-3xl font-bold text-primary-600 dark:text-primary-400">
+            {{ formatCurrency(property.currentRent) }}
+          </p>
         </div>
 
-        <div class="stat-card stat-card-info">
-          <div class="stat-icon">
-            <i class="pi pi-home"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Type</div>
-            <div class="stat-value-small">{{ formatPropertyType(property.type) }}</div>
-          </div>
+        <div class="card">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Type</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ formatPropertyType(property.type) }}
+          </p>
         </div>
 
-        <div class="stat-card stat-card-success">
-          <div class="stat-icon">
-            <i class="pi pi-th-large"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Surface</div>
-            <div class="stat-value">{{ property.surface }} m²</div>
-          </div>
+        <div class="card">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Surface</p>
+          <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            {{ property.surface }} m²
+          </p>
         </div>
 
-        <div class="stat-card stat-card-warning">
-          <div class="stat-icon">
-            <i class="pi pi-users"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Locataire</div>
-            <div class="stat-value-small">
-              {{ currentLease ? `${currentLease.Tenant.firstName} ${currentLease.Tenant.lastName}` : 'Disponible' }}
-            </div>
-          </div>
+        <div class="card">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Locataire</p>
+          <p class="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {{ currentLease ? `${currentLease.Tenant.firstName} ${currentLease.Tenant.lastName}` : 'Disponible' }}
+          </p>
         </div>
       </div>
 
-      <!-- Tabs pour organiser les informations -->
-      <TabView class="modern-tabs">
-        <!-- Onglet Informations générales -->
-        <TabPanel>
-          <template #header>
-            <i class="pi pi-info-circle tab-icon"></i>
-            <span>Informations</span>
-          </template>
-
-          <Card class="modern-card">
-            <template #content>
-              <div class="info-grid-modern">
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-tag"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Type de bien</span>
-                    <span class="info-value">{{ formatPropertyType(property.type) }}</span>
-                  </div>
+      <!-- Tabs -->
+      <TabView>
+        <!-- Tab Informations -->
+        <TabPanel header="Informations">
+          <div class="card">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Type de bien</label>
+                  <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ formatPropertyType(property.type) }}</p>
                 </div>
 
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-flag"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Statut</span>
-                    <Tag :value="property.status" :severity="getStatusSeverity(property.status)" />
-                  </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Surface habitable</label>
+                  <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.surface }} m²</p>
                 </div>
 
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-map-marker"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Adresse complète</span>
-                    <span class="info-value">{{ property.address }}<br>{{ property.postalCode }} {{ property.city }}</span>
-                  </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Nombre de pièces</label>
+                  <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.rooms }} pièce(s)</p>
                 </div>
 
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-expand"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Surface habitable</span>
-                    <span class="info-value">{{ property.surface }} m²</span>
-                  </div>
-                </div>
-
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-th-large"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Nombre de pièces</span>
-                    <span class="info-value">{{ property.rooms }} pièce(s)</span>
-                  </div>
-                </div>
-
-                <div class="info-item-modern">
-                  <div class="info-icon">
-                    <i class="pi pi-euro"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Loyer mensuel</span>
-                    <span class="info-value highlight">{{ formatCurrency(property.currentRent) }}</span>
-                  </div>
-                </div>
-
-                <div class="info-item-modern" v-if="property.fiscalNumber">
-                  <div class="info-icon">
-                    <i class="pi pi-id-card"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Numéro fiscal</span>
-                    <span class="info-value">{{ property.fiscalNumber }}</span>
-                  </div>
-                </div>
-
-                <div class="info-item-modern" v-if="property.cadastralReference">
-                  <div class="info-icon">
-                    <i class="pi pi-map"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Référence cadastrale</span>
-                    <span class="info-value">{{ property.cadastralReference }}</span>
-                  </div>
-                </div>
-
-                <div class="info-item-modern full-width" v-if="property.description">
-                  <div class="info-icon">
-                    <i class="pi pi-align-left"></i>
-                  </div>
-                  <div class="info-content">
-                    <span class="info-label">Description</span>
-                    <span class="info-value description">{{ property.description }}</span>
-                  </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Loyer mensuel</label>
+                  <p class="text-2xl font-bold text-primary-600 dark:text-primary-400">{{ formatCurrency(property.currentRent) }}</p>
                 </div>
               </div>
-            </template>
-          </Card>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Adresse complète</label>
+                  <p class="text-lg text-gray-900 dark:text-gray-100">{{ property.address }}</p>
+                  <p class="text-lg text-gray-900 dark:text-gray-100">{{ property.postalCode }} {{ property.city }}</p>
+                </div>
+
+                <div v-if="property.fiscalNumber">
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Numéro fiscal</label>
+                  <p class="text-lg text-gray-900 dark:text-gray-100">{{ property.fiscalNumber }}</p>
+                </div>
+
+                <div v-if="property.cadastralReference">
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Référence cadastrale</label>
+                  <p class="text-lg text-gray-900 dark:text-gray-100">{{ property.cadastralReference }}</p>
+                </div>
+
+                <div v-if="property.description">
+                  <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Description</label>
+                  <p class="text-base text-gray-900 dark:text-gray-100 leading-relaxed">{{ property.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabPanel>
 
-        <!-- Onglet Locataires -->
-        <TabPanel>
-          <template #header>
-            <i class="pi pi-users tab-icon"></i>
-            <span>Locataires</span>
-          </template>
-
-          <div class="section-header">
-            <h3 class="section-title">
-              <i class="pi pi-users"></i>
-              Gestion des locataires
-            </h3>
-            <Button
-              label="Nouveau bail"
-              icon="pi pi-plus"
-              class="p-button-rounded p-button-success"
+        <!-- Tab Locataires -->
+        <TabPanel header="Locataires">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Gestion des locataires</h3>
+            <button
               @click="showNewLeaseDialog = true"
               :disabled="hasActiveLease"
-            />
+              class="btn-primary flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Nouveau bail
+            </button>
           </div>
 
-          <!-- Locataire actuel -->
-          <Card v-if="currentLease" class="modern-card tenant-card">
-            <template #title>
-              <div class="card-header-modern">
-                <div class="card-title-icon">
-                  <i class="pi pi-user"></i>
-                  <span>Locataire actuel</span>
-                </div>
-                <div class="header-actions">
-                  <Button
-                    label="Modifier le bail"
-                    icon="pi pi-file-edit"
-                    class="p-button-sm p-button-info p-button-rounded"
-                    @click="editCurrentLease"
-                  />
-                  <Button
-                    label="Modifier le locataire"
-                    icon="pi pi-pencil"
-                    class="p-button-sm p-button-warning p-button-rounded"
-                    @click="editCurrentTenant"
-                  />
-                  <Button
-                    label="Terminer le bail"
-                    icon="pi pi-sign-out"
-                    class="p-button-sm p-button-danger p-button-rounded"
-                    @click="confirmTerminateLease"
-                  />
-                </div>
+          <!-- Current Lease -->
+          <div v-if="currentLease" class="card mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Locataire actuel</h4>
+              <div class="flex gap-2">
+                <button
+                  @click="editCurrentLease"
+                  class="btn-secondary text-sm px-3 py-1.5"
+                >
+                  Modifier le bail
+                </button>
+                <button
+                  @click="editCurrentTenant"
+                  class="btn-secondary text-sm px-3 py-1.5"
+                >
+                  Modifier le locataire
+                </button>
+                <button
+                  @click="confirmTerminateLease"
+                  class="btn-danger text-sm px-3 py-1.5"
+                >
+                  Terminer le bail
+                </button>
               </div>
-            </template>
-            <template #content>
-              <div class="lease-info-modern">
-                <div class="lease-item">
-                  <i class="pi pi-user item-icon"></i>
-                  <div>
-                    <span class="item-label">Locataire</span>
-                    <span class="item-value">{{ currentLease.Tenant.firstName }} {{ currentLease.Tenant.lastName }}</span>
-                  </div>
-                </div>
+            </div>
 
-                <div class="lease-item">
-                  <i class="pi pi-envelope item-icon"></i>
-                  <div>
-                    <span class="item-label">Email</span>
-                    <span class="item-value">{{ currentLease.Tenant.email || 'Non renseigné' }}</span>
-                  </div>
-                </div>
-
-                <div class="lease-item">
-                  <i class="pi pi-phone item-icon"></i>
-                  <div>
-                    <span class="item-label">Téléphone</span>
-                    <span class="item-value">{{ currentLease.Tenant.phone || 'Non renseigné' }}</span>
-                  </div>
-                </div>
-
-                <div class="lease-item">
-                  <i class="pi pi-calendar item-icon"></i>
-                  <div>
-                    <span class="item-label">Date d'emménagement</span>
-                    <span class="item-value">{{ formatDate(currentLease.startDate) }}</span>
-                  </div>
-                </div>
-
-                <div class="lease-item">
-                  <i class="pi pi-users item-icon"></i>
-                  <div>
-                    <span class="item-label">Nombre de personnes</span>
-                    <span class="item-value">{{ currentLease.numberOfOccupants }} personne(s)</span>
-                  </div>
-                </div>
-
-                <div class="lease-item highlight-item">
-                  <i class="pi pi-euro item-icon"></i>
-                  <div>
-                    <span class="item-label">Loyer mensuel</span>
-                    <span class="item-value amount">{{ formatCurrency(currentLease.rentAmount) }}</span>
-                  </div>
-                </div>
-
-                <div class="lease-item">
-                  <i class="pi pi-money-bill item-icon"></i>
-                  <div>
-                    <span class="item-label">Charges</span>
-                    <span class="item-value">{{ formatCurrency(currentLease.chargesAmount) }}</span>
-                  </div>
-                </div>
-
-                <div class="lease-item">
-                  <i class="pi pi-shield item-icon"></i>
-                  <div>
-                    <span class="item-label">Dépôt de garantie</span>
-                    <span class="item-value">{{ formatCurrency(currentLease.deposit) }}</span>
-                  </div>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Locataire</label>
+                <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {{ currentLease.Tenant.firstName }} {{ currentLease.Tenant.lastName }}
+                </p>
               </div>
-            </template>
-          </Card>
 
-          <div v-else class="empty-state">
-            <i class="pi pi-home empty-icon"></i>
-            <h3>Aucun locataire actuellement</h3>
-            <p>Ce bien est disponible à la location. Créez un nouveau bail pour l'attribuer à un locataire.</p>
-            <Button
-              label="Créer un bail"
-              icon="pi pi-plus"
-              class="p-button-rounded p-button-lg"
-              @click="showNewLeaseDialog = true"
-            />
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Email</label>
+                <p class="text-base text-gray-900 dark:text-gray-100">{{ currentLease.Tenant.email || 'Non renseigné' }}</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Téléphone</label>
+                <p class="text-base text-gray-900 dark:text-gray-100">{{ currentLease.Tenant.phone || 'Non renseigné' }}</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Date d'emménagement</label>
+                <p class="text-base text-gray-900 dark:text-gray-100">{{ formatDate(currentLease.startDate) }}</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Loyer mensuel</label>
+                <p class="text-xl font-bold text-primary-600 dark:text-primary-400">{{ formatCurrency(currentLease.rentAmount) }}</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Dépôt de garantie</label>
+                <p class="text-base text-gray-900 dark:text-gray-100">{{ formatCurrency(currentLease.deposit) }}</p>
+              </div>
+            </div>
           </div>
 
-          <!-- Historique des locataires -->
-          <Card v-if="pastLeases.length > 0" class="modern-card mt-4">
-            <template #title>
-              <div class="card-title-icon">
-                <i class="pi pi-history"></i>
-                <span>Historique des locataires</span>
-              </div>
-            </template>
-            <template #content>
-              <DataTable
-                :value="pastLeases"
-                class="modern-table"
-                stripedRows
-                :paginator="pastLeases.length > 5"
-                :rows="5"
-              >
-                <Column field="Tenant.firstName" header="Locataire">
-                  <template #body="{ data }">
-                    <div class="tenant-cell">
-                      <i class="pi pi-user"></i>
-                      <span>{{ data.Tenant.firstName }} {{ data.Tenant.lastName }}</span>
-                    </div>
-                  </template>
-                </Column>
-                <Column field="startDate" header="Emménagement">
-                  <template #body="{ data }">
-                    {{ formatDate(data.startDate) }}
-                  </template>
-                </Column>
-                <Column field="endDate" header="Départ">
-                  <template #body="{ data }">
-                    {{ formatDate(data.endDate) }}
-                  </template>
-                </Column>
-                <Column field="numberOfOccupants" header="Personnes">
-                  <template #body="{ data }">
-                    <Tag :value="`${data.numberOfOccupants} pers.`" severity="info" />
-                  </template>
-                </Column>
-                <Column field="rentAmount" header="Loyer">
-                  <template #body="{ data }">
-                    <span class="currency-cell">{{ formatCurrency(data.rentAmount) }}</span>
-                  </template>
-                </Column>
-              </DataTable>
-            </template>
-          </Card>
+          <div v-else class="card text-center py-12">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Aucun locataire actuellement</h3>
+            <p class="text-gray-600 dark:text-gray-400">Ce bien est disponible à la location</p>
+          </div>
+
+          <!-- Past Leases -->
+          <div v-if="pastLeases.length > 0" class="card mt-6">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Historique des locataires</h4>
+            <DataTable :value="pastLeases" class="mt-4">
+              <Column field="Tenant.firstName" header="Locataire">
+                <template #body="{ data }">
+                  {{ data.Tenant.firstName }} {{ data.Tenant.lastName }}
+                </template>
+              </Column>
+              <Column field="startDate" header="Emménagement">
+                <template #body="{ data }">
+                  {{ formatDate(data.startDate) }}
+                </template>
+              </Column>
+              <Column field="endDate" header="Départ">
+                <template #body="{ data }">
+                  {{ formatDate(data.endDate) }}
+                </template>
+              </Column>
+              <Column field="rentAmount" header="Loyer">
+                <template #body="{ data }">
+                  {{ formatCurrency(data.rentAmount) }}
+                </template>
+              </Column>
+            </DataTable>
+          </div>
         </TabPanel>
 
-        <!-- Onglet Loyers et Charges -->
-        <TabPanel>
-          <template #header>
-            <i class="pi pi-euro tab-icon"></i>
-            <span>Loyers & Charges</span>
-          </template>
-
-          <div class="section-header">
-            <h3 class="section-title">
-              <i class="pi pi-money-bill"></i>
-              Historique des loyers et charges
-            </h3>
-            <Button
-              label="Nouveau loyer/charges"
-              icon="pi pi-plus"
-              class="p-button-rounded p-button-success"
+        <!-- Tab Loyers & Charges -->
+        <TabPanel header="Loyers & Charges">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Historique des loyers et charges</h3>
+            <button
               @click="showRentHistoryDialog = true"
-            />
+              class="btn-primary flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Nouveau loyer/charges
+            </button>
           </div>
 
-          <!-- Loyer et charges actuels -->
-          <Card v-if="currentRentHistory" class="modern-card rent-card">
-            <template #title>
-              <div class="card-title-icon">
-                <i class="pi pi-check-circle"></i>
-                <span>Loyer et charges en vigueur</span>
-              </div>
-            </template>
-            <template #content>
-              <div class="rent-display-modern">
-                <div class="rent-stat-card">
-                  <div class="rent-stat-icon rent-icon">
-                    <i class="pi pi-home"></i>
-                  </div>
-                  <div class="rent-stat-content">
-                    <div class="rent-stat-label">Loyer</div>
-                    <div class="rent-stat-value">{{ formatCurrency(currentRentHistory.rentAmount) }}</div>
-                  </div>
-                </div>
-
-                <div class="rent-stat-card">
-                  <div class="rent-stat-icon charges-icon">
-                    <i class="pi pi-money-bill"></i>
-                  </div>
-                  <div class="rent-stat-content">
-                    <div class="rent-stat-label">Charges</div>
-                    <div class="rent-stat-value">{{ formatCurrency(currentRentHistory.chargesAmount) }}</div>
-                  </div>
-                </div>
-
-                <div class="rent-stat-card total-card">
-                  <div class="rent-stat-icon total-icon">
-                    <i class="pi pi-calculator"></i>
-                  </div>
-                  <div class="rent-stat-content">
-                    <div class="rent-stat-label">Total mensuel</div>
-                    <div class="rent-stat-value total">
-                      {{ formatCurrency(parseFloat(currentRentHistory.rentAmount) + parseFloat(currentRentHistory.chargesAmount)) }}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="rent-stat-card">
-                  <div class="rent-stat-icon date-icon">
-                    <i class="pi pi-calendar"></i>
-                  </div>
-                  <div class="rent-stat-content">
-                    <div class="rent-stat-label">En vigueur depuis</div>
-                    <div class="rent-stat-value-small">{{ formatDate(currentRentHistory.startDate) }}</div>
-                  </div>
-                </div>
+          <!-- Current Rent -->
+          <div v-if="currentRentHistory" class="card mb-6">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Loyer et charges en vigueur</h4>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="card bg-blue-50 dark:bg-blue-900/20">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Loyer</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {{ formatCurrency(currentRentHistory.rentAmount) }}
+                </p>
               </div>
 
-              <div v-if="currentRentHistory.notes" class="notes-section">
-                <i class="pi pi-info-circle"></i>
-                <span>{{ currentRentHistory.notes }}</span>
+              <div class="card bg-yellow-50 dark:bg-yellow-900/20">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Charges</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {{ formatCurrency(currentRentHistory.chargesAmount) }}
+                </p>
               </div>
-            </template>
-          </Card>
 
-          <div v-else class="empty-state">
-            <i class="pi pi-euro empty-icon"></i>
-            <h3>Aucun loyer défini</h3>
-            <p>Créez une entrée pour définir le loyer et les charges de ce bien.</p>
-            <Button
-              label="Définir le loyer"
-              icon="pi pi-plus"
-              class="p-button-rounded p-button-lg"
-              @click="showRentHistoryDialog = true"
-            />
+              <div class="card bg-green-50 dark:bg-green-900/20">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total mensuel</p>
+                <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {{ formatCurrency(parseFloat(currentRentHistory.rentAmount) + parseFloat(currentRentHistory.chargesAmount)) }}
+                </p>
+              </div>
+
+              <div class="card">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">En vigueur depuis</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {{ formatDate(currentRentHistory.startDate) }}
+                </p>
+              </div>
+            </div>
+
+            <div v-if="currentRentHistory.notes" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p class="text-sm text-gray-900 dark:text-gray-100">{{ currentRentHistory.notes }}</p>
+            </div>
           </div>
 
-          <!-- Historique complet -->
-          <Card v-if="rentHistory.length > 0" class="modern-card mt-4">
-            <template #title>
-              <div class="card-title-icon">
-                <i class="pi pi-history"></i>
-                <span>Historique complet</span>
-              </div>
-            </template>
-            <template #content>
-              <DataTable
-                :value="rentHistory"
-                class="modern-table"
-                stripedRows
-                :paginator="rentHistory.length > 10"
-                :rows="10"
-                sortField="startDate"
-                :sortOrder="-1"
-              >
-                <Column field="startDate" header="Date de début" sortable>
-                  <template #body="{ data }">
-                    <div class="date-cell">
-                      <i class="pi pi-calendar"></i>
-                      {{ formatDate(data.startDate) }}
-                    </div>
-                  </template>
-                </Column>
-                <Column field="endDate" header="Date de fin">
-                  <template #body="{ data }">
-                    <div class="date-cell">
-                      <i class="pi pi-calendar"></i>
-                      {{ data.endDate ? formatDate(data.endDate) : 'En cours' }}
-                    </div>
-                  </template>
-                </Column>
-                <Column field="rentAmount" header="Loyer">
-                  <template #body="{ data }">
-                    <span class="currency-cell">{{ formatCurrency(data.rentAmount) }}</span>
-                  </template>
-                </Column>
-                <Column field="chargesAmount" header="Charges">
-                  <template #body="{ data }">
-                    <span class="currency-cell">{{ formatCurrency(data.chargesAmount) }}</span>
-                  </template>
-                </Column>
-                <Column header="Total">
-                  <template #body="{ data }">
-                    <span class="currency-cell total">
-                      {{ formatCurrency(parseFloat(data.rentAmount) + parseFloat(data.chargesAmount)) }}
-                    </span>
-                  </template>
-                </Column>
-                <Column field="isCurrent" header="Statut">
-                  <template #body="{ data }">
-                    <Tag
-                      :value="data.isCurrent ? 'Actuel' : 'Archivé'"
-                      :severity="data.isCurrent ? 'success' : 'secondary'"
-                      :icon="data.isCurrent ? 'pi pi-check' : 'pi pi-history'"
-                    />
-                  </template>
-                </Column>
-              </DataTable>
-            </template>
-          </Card>
+          <div v-else class="card text-center py-12">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Aucun loyer défini</h3>
+            <p class="text-gray-600 dark:text-gray-400">Créez une entrée pour définir le loyer et les charges</p>
+          </div>
+
+          <!-- Rent History Table -->
+          <div v-if="rentHistory.length > 0" class="card mt-6">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Historique complet</h4>
+            <DataTable :value="rentHistory" sortField="startDate" :sortOrder="-1">
+              <Column field="startDate" header="Date de début" sortable>
+                <template #body="{ data }">
+                  {{ formatDate(data.startDate) }}
+                </template>
+              </Column>
+              <Column field="endDate" header="Date de fin">
+                <template #body="{ data }">
+                  {{ data.endDate ? formatDate(data.endDate) : 'En cours' }}
+                </template>
+              </Column>
+              <Column field="rentAmount" header="Loyer">
+                <template #body="{ data }">
+                  {{ formatCurrency(data.rentAmount) }}
+                </template>
+              </Column>
+              <Column field="chargesAmount" header="Charges">
+                <template #body="{ data }">
+                  {{ formatCurrency(data.chargesAmount) }}
+                </template>
+              </Column>
+              <Column header="Total">
+                <template #body="{ data }">
+                  <span class="font-semibold text-green-600 dark:text-green-400">
+                    {{ formatCurrency(parseFloat(data.rentAmount) + parseFloat(data.chargesAmount)) }}
+                  </span>
+                </template>
+              </Column>
+              <Column field="isCurrent" header="Statut">
+                <template #body="{ data }">
+                  <span
+                    :class="data.isCurrent ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  >
+                    {{ data.isCurrent ? 'Actuel' : 'Archivé' }}
+                  </span>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
         </TabPanel>
       </TabView>
     </div>
 
-    <!-- Dialog Nouveau Bail -->
+    <!-- Dialog New Lease -->
     <Dialog
       v-model:visible="showNewLeaseDialog"
       header="Créer un nouveau bail"
       :modal="true"
       :style="{ width: '700px' }"
-      class="modern-dialog"
     >
-      <div class="lease-form">
-        <div class="p-field">
-          <label><i class="pi pi-user"></i> Locataire *</label>
-          <Dropdown
-            v-model="leaseForm.tenantId"
-            :options="tenants"
-            optionLabel="fullName"
-            optionValue="id"
-            placeholder="Sélectionnez un locataire"
-            :filter="true"
-            required
-            class="w-full"
-          />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locataire *</label>
+          <select v-model="leaseForm.tenantId" class="input-field" required>
+            <option value="">Sélectionnez un locataire</option>
+            <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+              {{ tenant.fullName }}
+            </option>
+          </select>
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-calendar"></i> Date d'emménagement *</label>
-            <Calendar v-model="leaseForm.startDate" dateFormat="dd/mm/yy" required class="w-full" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'emménagement *</label>
+            <Calendar v-model="leaseForm.startDate" dateFormat="dd/mm/yy" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-calendar"></i> Date de fin (optionnel)</label>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de fin (optionnel)</label>
             <Calendar v-model="leaseForm.endDate" dateFormat="dd/mm/yy" showButtonBar class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-users"></i> Nombre de personnes *</label>
-          <InputNumber v-model="leaseForm.numberOfOccupants" :min="1" required class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de personnes *</label>
+          <InputNumber v-model="leaseForm.numberOfOccupants" :min="1" class="w-full" />
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-euro"></i> Loyer mensuel (€) *</label>
-            <InputNumber v-model="leaseForm.rentAmount" mode="currency" currency="EUR" required class="w-full" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loyer mensuel (€) *</label>
+            <InputNumber v-model="leaseForm.rentAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-money-bill"></i> Charges (€)</label>
-            <InputNumber v-model="leaseForm.chargesAmount" mode="currency" currency="EUR" class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Charges (€)</label>
+            <InputNumber v-model="leaseForm.chargesAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-shield"></i> Dépôt de garantie (€)</label>
-          <InputNumber v-model="leaseForm.deposit" mode="currency" currency="EUR" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dépôt de garantie (€)</label>
+          <InputNumber v-model="leaseForm.deposit" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-align-left"></i> Notes</label>
-          <Textarea v-model="leaseForm.notes" rows="3" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+          <textarea v-model="leaseForm.notes" rows="3" class="input-field"></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showNewLeaseDialog = false" class="p-button-text" />
-        <Button label="Créer le bail" icon="pi pi-check" @click="createLease" :loading="savingLease" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="showNewLeaseDialog = false" class="btn-secondary">Annuler</button>
+          <button @click="createLease" :disabled="savingLease" class="btn-primary">
+            {{ savingLease ? 'Création...' : 'Créer le bail' }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
-    <!-- Dialog Nouveau Loyer/Charges -->
+    <!-- Dialog Rent History -->
     <Dialog
       v-model:visible="showRentHistoryDialog"
       header="Définir un nouveau loyer et charges"
       :modal="true"
       :style="{ width: '600px' }"
-      class="modern-dialog"
     >
-      <div class="rent-history-form">
-        <Message severity="info" :closable="false" class="mb-3">
-          <i class="pi pi-info-circle"></i>
-          Cette nouvelle entrée remplacera le loyer et les charges actuels à partir de la date définie.
-        </Message>
-        <div class="p-field">
-          <label><i class="pi pi-calendar"></i> Date de début de validité *</label>
-          <Calendar v-model="rentHistoryForm.startDate" dateFormat="dd/mm/yy" required class="w-full" />
+      <div class="space-y-4">
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
+          <p class="text-sm text-gray-900 dark:text-gray-100">
+            Cette nouvelle entrée remplacera le loyer et les charges actuels à partir de la date définie.
+          </p>
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-euro"></i> Loyer mensuel (€) *</label>
-            <InputNumber v-model="rentHistoryForm.rentAmount" mode="currency" currency="EUR" required class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de début de validité *</label>
+          <Calendar v-model="rentHistoryForm.startDate" dateFormat="dd/mm/yy" class="w-full" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loyer mensuel (€) *</label>
+            <InputNumber v-model="rentHistoryForm.rentAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-money-bill"></i> Charges mensuelles (€)</label>
-            <InputNumber v-model="rentHistoryForm.chargesAmount" mode="currency" currency="EUR" class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Charges mensuelles (€)</label>
+            <InputNumber v-model="rentHistoryForm.chargesAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-align-left"></i> Notes (ex: augmentation annuelle, révision IRL...)</label>
-          <Textarea v-model="rentHistoryForm.notes" rows="3" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+          <textarea v-model="rentHistoryForm.notes" rows="3" class="input-field" placeholder="Ex: augmentation annuelle, révision IRL..."></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showRentHistoryDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" icon="pi pi-check" @click="createRentHistory" :loading="savingRentHistory" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="showRentHistoryDialog = false" class="btn-secondary">Annuler</button>
+          <button @click="createRentHistory" :disabled="savingRentHistory" class="btn-primary">
+            {{ savingRentHistory ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
-    <!-- Dialog Modification Locataire -->
+    <!-- Dialog Edit Tenant -->
     <Dialog
       v-model:visible="showEditTenantDialog"
       header="Modifier le locataire"
       :modal="true"
       :style="{ width: '600px' }"
-      class="modern-dialog"
     >
-      <div class="modern-form">
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-user"></i> Prénom *</label>
-            <InputText v-model="tenantForm.firstName" required class="w-full" />
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom *</label>
+            <input v-model="tenantForm.firstName" type="text" class="input-field" required />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-user"></i> Nom *</label>
-            <InputText v-model="tenantForm.lastName" required class="w-full" />
-          </div>
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-envelope"></i> Email</label>
-          <InputText v-model="tenantForm.email" type="email" class="w-full" />
-        </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-phone"></i> Téléphone</label>
-            <InputText v-model="tenantForm.phone" class="w-full" />
-          </div>
-          <div class="p-field">
-            <label><i class="pi pi-mobile"></i> Mobile</label>
-            <InputText v-model="tenantForm.mobile" class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+            <input v-model="tenantForm.lastName" type="text" class="input-field" required />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-map-marker"></i> Adresse</label>
-          <InputText v-model="tenantForm.address" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input v-model="tenantForm.email" type="email" class="input-field" />
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Ville</label>
-            <InputText v-model="tenantForm.city" class="w-full" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
+            <input v-model="tenantForm.phone" type="tel" class="input-field" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Code postal</label>
-            <InputText v-model="tenantForm.postalCode" class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mobile</label>
+            <input v-model="tenantForm.mobile" type="tel" class="input-field" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-wallet"></i> IBAN</label>
-          <InputText v-model="tenantForm.iban" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IBAN</label>
+          <input v-model="tenantForm.iban" type="text" class="input-field" />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-file-edit"></i> Notes</label>
-          <Textarea v-model="tenantForm.notes" rows="3" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+          <textarea v-model="tenantForm.notes" rows="3" class="input-field"></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showEditTenantDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" icon="pi pi-check" @click="updateTenant" :loading="savingTenant" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="showEditTenantDialog = false" class="btn-secondary">Annuler</button>
+          <button @click="updateTenant" :disabled="savingTenant" class="btn-primary">
+            {{ savingTenant ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
-    <!-- Dialog Modification Bail -->
+    <!-- Dialog Edit Lease -->
     <Dialog
       v-model:visible="showEditLeaseDialog"
       header="Modifier le bail"
       :modal="true"
       :style="{ width: '700px' }"
-      class="modern-dialog"
     >
-      <div class="modern-form">
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-calendar"></i> Date d'emménagement *</label>
-            <Calendar v-model="editLeaseForm.startDate" dateFormat="dd/mm/yy" required class="w-full" />
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'emménagement *</label>
+            <Calendar v-model="editLeaseForm.startDate" dateFormat="dd/mm/yy" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-calendar"></i> Date de fin (optionnel)</label>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de fin (optionnel)</label>
             <Calendar v-model="editLeaseForm.endDate" dateFormat="dd/mm/yy" showButtonBar class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-users"></i> Nombre de personnes *</label>
-          <InputNumber v-model="editLeaseForm.numberOfOccupants" :min="1" required class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de personnes *</label>
+          <InputNumber v-model="editLeaseForm.numberOfOccupants" :min="1" class="w-full" />
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-euro"></i> Loyer mensuel (€) *</label>
-            <InputNumber v-model="editLeaseForm.rentAmount" mode="currency" currency="EUR" required class="w-full" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loyer mensuel (€) *</label>
+            <InputNumber v-model="editLeaseForm.rentAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-money-bill"></i> Charges (€)</label>
-            <InputNumber v-model="editLeaseForm.chargesAmount" mode="currency" currency="EUR" class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Charges (€)</label>
+            <InputNumber v-model="editLeaseForm.chargesAmount" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-shield"></i> Dépôt de garantie (€)</label>
-          <InputNumber v-model="editLeaseForm.deposit" mode="currency" currency="EUR" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dépôt de garantie (€)</label>
+          <InputNumber v-model="editLeaseForm.deposit" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-align-left"></i> Notes</label>
-          <Textarea v-model="editLeaseForm.notes" rows="3" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+          <textarea v-model="editLeaseForm.notes" rows="3" class="input-field"></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showEditLeaseDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" icon="pi pi-check" @click="updateLease" :loading="updatingLease" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="showEditLeaseDialog = false" class="btn-secondary">Annuler</button>
+          <button @click="updateLease" :disabled="updatingLease" class="btn-primary">
+            {{ updatingLease ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
-    <!-- Dialog Modification Propriété -->
+    <!-- Dialog Edit Property -->
     <Dialog
       v-model:visible="showEditPropertyDialog"
       header="Modifier la propriété"
       :modal="true"
-      :style="{ width: '600px', maxHeight: '90vh' }"
-      class="modern-dialog"
+      :style="{ width: '600px' }"
     >
-      <div class="modern-form" style="max-height: 60vh; overflow-y: auto;">
-        <div class="p-field">
-          <label><i class="pi pi-tag"></i> Nom du bien *</label>
-          <InputText v-model="propertyForm.name" required class="w-full" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du bien *</label>
+          <input v-model="propertyForm.name" type="text" class="input-field" required />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-map-marker"></i> Adresse *</label>
-          <InputText v-model="propertyForm.address" required class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse *</label>
+          <input v-model="propertyForm.address" type="text" class="input-field" required />
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-building"></i> Ville *</label>
-            <InputText v-model="propertyForm.city" required class="w-full" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ville *</label>
+            <input v-model="propertyForm.city" type="text" class="input-field" required />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Code postal *</label>
-            <InputText v-model="propertyForm.postalCode" required class="w-full" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Code postal *</label>
+            <input v-model="propertyForm.postalCode" type="text" class="input-field" required />
           </div>
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-th-large"></i> Surface (m²)</label>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Surface (m²)</label>
             <InputNumber v-model="propertyForm.surface" :min="0" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-th-large"></i> Pièces</label>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pièces</label>
             <InputNumber v-model="propertyForm.rooms" :min="0" class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-euro"></i> Loyer actuel (€)</label>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loyer actuel (€)</label>
           <InputNumber v-model="propertyForm.currentRent" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-align-left"></i> Description</label>
-          <Textarea v-model="propertyForm.description" rows="3" class="w-full" />
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+          <textarea v-model="propertyForm.description" rows="3" class="input-field"></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showEditPropertyDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" icon="pi pi-check" @click="updateProperty" :loading="updatingProperty" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="showEditPropertyDialog = false" class="btn-secondary">Annuler</button>
+          <button @click="updateProperty" :disabled="updatingProperty" class="btn-primary">
+            {{ updatingProperty ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
   </div>
@@ -796,21 +657,13 @@ import { useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import api from '@/services/api'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import Tag from 'primevue/tag'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
-import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
-import ProgressSpinner from 'primevue/progressspinner'
-import Message from 'primevue/message'
 
 const route = useRoute()
 const toast = useToast()
@@ -911,7 +764,7 @@ const loadProperty = async () => {
     const response = await api.get(`/api/properties/${route.params.id}`)
     property.value = response.data.data
 
-    // Pré-remplir le formulaire de bail avec le loyer actuel
+    // Pré-remplir le formulaire de bail
     if (currentRentHistory.value) {
       leaseForm.rentAmount = currentRentHistory.value.rentAmount
       leaseForm.chargesAmount = currentRentHistory.value.chargesAmount
@@ -966,7 +819,7 @@ const createLease = async () => {
 
 const confirmTerminateLease = () => {
   confirm.require({
-    message: 'Voulez-vous vraiment terminer ce bail ? Le bien sera marqué comme disponible.',
+    message: 'Voulez-vous vraiment terminer ce bail ?',
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
     accept: async () => {
@@ -1127,14 +980,24 @@ const updateProperty = async () => {
   }
 }
 
-const getStatusSeverity = (status) => {
-  const severityMap = {
-    disponible: 'success',
-    loue: 'info',
-    en_travaux: 'warning',
-    vendu: 'danger'
+const getStatusClass = (status) => {
+  const classMap = {
+    disponible: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    loue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    en_travaux: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    vendu: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
   }
-  return severityMap[status] || 'info'
+  return classMap[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+}
+
+const getStatusLabel = (status) => {
+  const labelMap = {
+    disponible: 'Disponible',
+    loue: 'Loué',
+    en_travaux: 'En travaux',
+    vendu: 'Vendu'
+  }
+  return labelMap[status] || status
 }
 
 const formatPropertyType = (type) => {
@@ -1166,757 +1029,3 @@ onMounted(() => {
   loadTenants()
 })
 </script>
-
-<style scoped>
-.property-detail {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.back-button {
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: 4rem;
-}
-
-.content-wrapper {
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* En-tête moderne */
-.page-header-modern {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.page-header-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.title-section {
-  flex: 1;
-}
-
-.page-title-modern {
-  color: white;
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.subtitle-modern {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 1.1rem;
-}
-
-.subtitle-modern i {
-  font-size: 1rem;
-}
-
-.status-tag-large {
-  font-size: 1rem;
-  padding: 0.5rem 1.25rem;
-  border-radius: 25px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Cartes de statistiques */
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.75rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-}
-
-.stat-card-primary .stat-icon {
-  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-  color: white;
-}
-
-.stat-card-info .stat-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-  color: white;
-}
-
-.stat-card-success .stat-icon {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-  color: white;
-}
-
-.stat-card-warning .stat-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-color-secondary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-.stat-value-small {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1.2;
-}
-
-/* Tabs modernes */
-.modern-tabs {
-  background: transparent;
-}
-
-.modern-tabs :deep(.p-tabview-nav) {
-  background: white;
-  border-radius: 12px;
-  padding: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  border: none;
-}
-
-.modern-tabs :deep(.p-tabview-nav-link) {
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.modern-tabs :deep(.p-tabview-panels) {
-  background: transparent;
-  padding: 2rem 0 0 0;
-}
-
-.tab-icon {
-  margin-right: 0.5rem;
-  font-size: 1.1rem;
-}
-
-/* Cartes modernes */
-.modern-card {
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  overflow: hidden;
-}
-
-.modern-card :deep(.p-card-title) {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-color);
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--surface-100);
-  margin-bottom: 1.5rem;
-}
-
-.modern-card :deep(.p-card-content) {
-  padding: 1.5rem;
-}
-
-.card-header-modern {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.card-title-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.card-title-icon i {
-  color: var(--primary-color);
-  font-size: 1.5rem;
-}
-
-/* Grille d'informations moderne */
-.info-grid-modern {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.info-item-modern {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: var(--surface-50);
-  border-radius: 12px;
-  border-left: 4px solid var(--primary-color);
-  transition: all 0.2s;
-}
-
-.info-item-modern:hover {
-  background: var(--surface-100);
-  transform: translateX(5px);
-}
-
-.info-item-modern.full-width {
-  grid-column: 1 / -1;
-}
-
-.info-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  color: white;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 1.25rem;
-}
-
-.info-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-value {
-  font-size: 1.1rem;
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.info-value.highlight {
-  color: var(--primary-color);
-  font-weight: 700;
-  font-size: 1.5rem;
-}
-
-.info-value.description {
-  line-height: 1.6;
-}
-
-/* Section header */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.section-title i {
-  color: var(--primary-color);
-  font-size: 1.75rem;
-}
-
-/* Informations de bail modernes */
-.lease-info-modern {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.lease-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--surface-50);
-  border-radius: 10px;
-  transition: all 0.2s;
-}
-
-.lease-item:hover {
-  background: var(--surface-100);
-}
-
-.lease-item.highlight-item {
-  background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
-  border: 2px solid var(--primary-color);
-}
-
-.item-icon {
-  color: var(--primary-color);
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  margin-top: 0.25rem;
-}
-
-.lease-item div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.item-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color-secondary);
-}
-
-.item-value {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.item-value.amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-/* Affichage du loyer moderne */
-.rent-display-modern {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.rent-stat-card {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 2px solid var(--surface-200);
-  transition: all 0.3s;
-}
-
-.rent-stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.rent-stat-card.total-card {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-}
-
-.rent-stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.rent-icon {
-  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-  color: white;
-}
-
-.charges-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.total-icon {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-  color: white;
-}
-
-.date-icon {
-  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-  color: white;
-}
-
-.rent-stat-content {
-  flex: 1;
-}
-
-.rent-stat-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.rent-stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-.rent-stat-value.total {
-  color: #10b981;
-  font-size: 2rem;
-}
-
-.rent-stat-value-small {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-color);
-}
-
-.notes-section {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: var(--blue-50);
-  border-left: 4px solid var(--blue-500);
-  border-radius: 8px;
-  margin-top: 1.5rem;
-}
-
-.notes-section i {
-  color: var(--blue-500);
-  font-size: 1.25rem;
-  margin-top: 0.25rem;
-}
-
-.notes-section span {
-  flex: 1;
-  line-height: 1.6;
-  color: var(--text-color);
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: var(--surface-50);
-  border-radius: 16px;
-  border: 2px dashed var(--surface-300);
-}
-
-.empty-icon {
-  font-size: 4rem;
-  color: var(--text-color-secondary);
-  margin-bottom: 1.5rem;
-  opacity: 0.5;
-}
-
-.empty-state h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-color);
-  margin: 0 0 1rem 0;
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  color: var(--text-color-secondary);
-  margin: 0 0 2rem 0;
-  line-height: 1.6;
-}
-
-/* Table moderne */
-.modern-table :deep(.p-datatable-thead > tr > th) {
-  background: var(--primary-50);
-  color: var(--primary-color);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.875rem;
-  padding: 1.25rem 1rem;
-  border: none;
-}
-
-.modern-table :deep(.p-datatable-tbody > tr) {
-  transition: all 0.2s;
-}
-
-.modern-table :deep(.p-datatable-tbody > tr:hover) {
-  background: var(--primary-50) !important;
-  transform: scale(1.01);
-}
-
-.modern-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 1.25rem 1rem;
-  font-size: 1rem;
-  border-color: var(--surface-200);
-}
-
-.tenant-cell,
-.date-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.tenant-cell i,
-.date-cell i {
-  color: var(--primary-color);
-  font-size: 1.1rem;
-}
-
-.currency-cell {
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.currency-cell.total {
-  color: #10b981;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-/* Formulaires */
-.lease-form,
-.rent-history-form,
-.modern-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.p-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.p-field-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.p-field label {
-  font-weight: 700;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.p-field label i {
-  color: var(--primary-color);
-  font-size: 1rem;
-}
-
-.modern-dialog :deep(.p-dialog-header) {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
-  color: white;
-  padding: 1.5rem 2rem;
-  border-radius: 12px 12px 0 0;
-}
-
-.modern-dialog :deep(.p-dialog-title) {
-  font-weight: 700;
-  font-size: 1.5rem;
-}
-
-.modern-dialog :deep(.p-dialog-content) {
-  padding: 2rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-/* Espacements */
-.mt-4 {
-  margin-top: 2rem;
-}
-
-.mb-3 {
-  margin-bottom: 1.5rem;
-}
-
-/* Mode sombre */
-.dark-mode .stat-card {
-  background: #1e293b;
-  border-color: #334155;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.dark-mode .stat-label {
-  color: #94a3b8;
-}
-
-.dark-mode .stat-value,
-.dark-mode .stat-value-small {
-  color: #f1f5f9;
-}
-
-.dark-mode .modern-tabs :deep(.p-tabview-nav) {
-  background: #1e293b;
-}
-
-.dark-mode .modern-card {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.dark-mode .modern-card :deep(.p-card-title) {
-  color: #f1f5f9;
-}
-
-.dark-mode .info-label,
-.dark-mode .lease-label,
-.dark-mode .rent-stat-label {
-  color: #94a3b8;
-}
-
-.dark-mode .info-value,
-.dark-mode .lease-value,
-.dark-mode .rent-stat-value,
-.dark-mode .rent-stat-value-small {
-  color: #f1f5f9;
-}
-
-.dark-mode .card-title-icon i {
-  color: #60a5fa;
-}
-
-.dark-mode .modern-dialog :deep(.p-dialog-content) {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .property-detail {
-    padding: 1rem;
-  }
-
-  .page-title-modern {
-    font-size: 1.75rem;
-  }
-
-  .summary-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .info-grid-modern,
-  .lease-info-modern,
-  .rent-display-modern {
-    grid-template-columns: 1fr;
-  }
-
-  .p-field-group {
-    grid-template-columns: 1fr;
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .section-title {
-    font-size: 1.25rem;
-  }
-}
-</style>

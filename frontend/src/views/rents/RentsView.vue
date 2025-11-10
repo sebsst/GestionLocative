@@ -1,264 +1,295 @@
 <template>
-  <div class="modern-view">
-    <!-- En-tête moderne -->
-    <div class="page-header-modern">
+  <div class="p-8">
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="page-title-modern">Gestion des loyers</h1>
-        <p class="subtitle-modern">Suivi des paiements et génération des loyers</p>
+        <h1 class="text-3xl font-bold">Gestion des loyers</h1>
+        <p class="text-base-content/70 mt-1">Suivi des paiements et génération des loyers</p>
       </div>
-      <Button
-        label="Générer les loyers du mois"
-        icon="pi pi-plus"
+      <button
         @click="showGenerateDialog = true"
-        class="p-button-rounded p-button-lg p-button-success"
-      />
+        class="btn btn-primary gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Générer les loyers du mois
+      </button>
     </div>
 
-    <!-- Cartes de statistiques -->
-    <div class="stats-grid">
-      <div class="stat-card stat-primary">
-        <div class="stat-icon">
-          <i class="pi pi-money-bill"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Total loyers</div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Total loyers</div>
           <div class="stat-value">{{ rents.length }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-warning">
-        <div class="stat-icon">
-          <i class="pi pi-clock"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">En attente</div>
+      <div class="stats shadow bg-warning text-warning-content">
+        <div class="stat">
+          <div class="stat-title text-warning-content/70">En attente</div>
           <div class="stat-value">{{ pendingCount }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-danger">
-        <div class="stat-icon">
-          <i class="pi pi-exclamation-triangle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">En retard</div>
+      <div class="stats shadow bg-error text-error-content">
+        <div class="stat">
+          <div class="stat-title text-error-content/70">En retard</div>
           <div class="stat-value">{{ lateCount }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-success">
-        <div class="stat-icon">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Payés</div>
+      <div class="stats shadow bg-success text-success-content">
+        <div class="stat">
+          <div class="stat-title text-success-content/70">Payés</div>
           <div class="stat-value">{{ paidCount }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-revenue">
-        <div class="stat-icon">
-          <i class="pi pi-euro"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Montant perçu</div>
-          <div class="stat-value-small">{{ formatCurrency(totalPaidAmount) }}</div>
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Montant perçu</div>
+          <div class="stat-value text-xl">{{ formatCurrency(totalPaidAmount) }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-info">
-        <div class="stat-icon">
-          <i class="pi pi-wallet"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Montant attendu</div>
-          <div class="stat-value-small">{{ formatCurrency(totalExpectedAmount) }}</div>
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Montant attendu</div>
+          <div class="stat-value text-xl">{{ formatCurrency(totalExpectedAmount) }}</div>
         </div>
       </div>
     </div>
 
-    <Card class="modern-card">
-      <template #content>
-        <div class="filters-modern">
-          <Dropdown
-            v-model="filters.year"
-            :options="years"
-            placeholder="Année"
-            @change="loadRents"
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="dropdown-value">
-                <i class="pi pi-calendar"></i>
-                <span>{{ slotProps.value }}</span>
-              </div>
-              <span v-else>{{ slotProps.placeholder }}</span>
-            </template>
-          </Dropdown>
-          <Dropdown
-            v-model="filters.month"
-            :options="months"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Mois"
-            @change="loadRents"
-            showClear
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="dropdown-value">
-                <i class="pi pi-calendar"></i>
-                <span>{{ getMonthName(slotProps.value) }}</span>
-              </div>
-              <span v-else>{{ slotProps.placeholder }}</span>
-            </template>
-          </Dropdown>
-          <Dropdown
-            v-model="filters.status"
-            :options="statusOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Statut"
-            @change="loadRents"
-            showClear
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="dropdown-value">
-                <i class="pi pi-filter"></i>
-                <span>{{ statusOptions.find(s => s.value === slotProps.value)?.label }}</span>
-              </div>
-              <span v-else>{{ slotProps.placeholder }}</span>
-            </template>
-          </Dropdown>
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Année</span>
+            </label>
+            <select v-model="filters.year" class="select select-bordered w-full" @change="loadRents">
+              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Mois</span>
+            </label>
+            <select v-model="filters.month" class="select select-bordered w-full" @change="loadRents">
+              <option value="">Tous les mois</option>
+              <option v-for="month in months" :key="month.value" :value="month.value">
+                {{ month.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut</span>
+            </label>
+            <select v-model="filters.status" class="select select-bordered w-full" @change="loadRents">
+              <option value="">Tous les statuts</option>
+              <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <DataTable
-          :value="rents"
-          :loading="loading"
-          :paginator="true"
-          :rows="10"
-          responsiveLayout="scroll"
-          class="modern-table"
-          stripedRows
-        >
-          <Column field="Lease.Tenant.firstName" header="Locataire">
-            <template #body="{ data }">
-              {{ data.Lease.Tenant.firstName }} {{ data.Lease.Tenant.lastName }}
-            </template>
-          </Column>
-          <Column field="Lease.Property.name" header="Bien"></Column>
-          <Column field="month" header="Période">
-            <template #body="{ data }">
-              {{ getMonthName(data.month) }} {{ data.year }}
-            </template>
-          </Column>
-          <Column field="expectedAmount" header="Montant attendu">
-            <template #body="{ data }">
-              {{ formatCurrency(data.expectedAmount) }}
-            </template>
-          </Column>
-          <Column field="paidAmount" header="Montant payé">
-            <template #body="{ data }">
-              {{ formatCurrency(data.paidAmount) }}
-            </template>
-          </Column>
-          <Column field="status" header="Statut">
-            <template #body="{ data }">
-              <Tag
-                :value="data.status"
-                :severity="getStatusSeverity(data.status)"
-              />
-            </template>
-          </Column>
-          <Column header="Actions">
-            <template #body="{ data }">
-              <Button
-                icon="pi pi-check"
-                class="p-button-rounded p-button-text p-button-success"
-                @click="markAsPaid(data)"
-                v-tooltip.top="'Marquer comme payé'"
-                v-if="data.status !== 'paye'"
-              />
-              <Button
-                icon="pi pi-envelope"
-                class="p-button-rounded p-button-text"
-                @click="sendReminder(data)"
-                v-tooltip.top="'Envoyer un rappel'"
-              />
-              <Button
-                icon="pi pi-download"
-                class="p-button-rounded p-button-text"
-                @click="downloadReminder(data)"
-                v-tooltip.top="'Télécharger le rappel'"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
 
+    <!-- Table -->
+    <div v-else-if="rents.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Locataire</th>
+              <th>Bien</th>
+              <th>Période</th>
+              <th class="text-right">Montant attendu</th>
+              <th class="text-right">Montant payé</th>
+              <th class="text-center">Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rent in rents" :key="rent.id" class="hover">
+              <td>
+                <div class="font-medium">
+                  {{ rent.Lease?.Tenant?.firstName }} {{ rent.Lease?.Tenant?.lastName }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  {{ rent.Lease?.Property?.name }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  {{ getMonthName(rent.month) }} {{ rent.year }}
+                </div>
+              </td>
+              <td class="text-right">
+                <div class="text-sm font-medium">
+                  {{ formatCurrency(rent.expectedAmount) }}
+                </div>
+              </td>
+              <td class="text-right">
+                <div class="text-sm font-medium">
+                  {{ formatCurrency(rent.paidAmount) }}
+                </div>
+              </td>
+              <td class="text-center">
+                <div
+                  :class="getBadgeClass(rent.status)"
+                  class="badge badge-sm"
+                >
+                  {{ getStatusLabel(rent.status) }}
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    v-if="rent.status !== 'paye'"
+                    @click="markAsPaid(rent)"
+                    class="btn btn-ghost btn-xs text-success"
+                    title="Marquer comme payé"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="sendReminder(rent)"
+                    class="btn btn-ghost btn-xs text-info"
+                    title="Envoyer un rappel"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="downloadReminder(rent)"
+                    class="btn btn-ghost btn-xs text-secondary"
+                    title="Télécharger le rappel"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="card bg-base-100 shadow-xl">
+      <div class="card-body items-center text-center py-12">
+        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">Aucun loyer trouvé</h3>
+        <p class="text-base-content/60">Générez les loyers du mois en cours</p>
+      </div>
+    </div>
+
+    <!-- Dialog Generate Rents -->
     <Dialog
       v-model:visible="showGenerateDialog"
       header="Générer les loyers"
       :modal="true"
       :style="{ width: '400px' }"
     >
-      <div class="generate-form">
-        <div class="p-field">
-          <label>Mois</label>
-          <Dropdown
-            v-model="generateForm.month"
-            :options="months"
-            optionLabel="label"
-            optionValue="value"
-            required
-          />
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Mois</span>
+          </label>
+          <select v-model="generateForm.month" class="select select-bordered w-full">
+            <option v-for="month in months" :key="month.value" :value="month.value">
+              {{ month.label }}
+            </option>
+          </select>
         </div>
-        <div class="p-field">
-          <label>Année</label>
-          <Dropdown
-            v-model="generateForm.year"
-            :options="years"
-            required
-          />
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Année</span>
+          </label>
+          <select v-model="generateForm.year" class="select select-bordered w-full">
+            <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+          </select>
         </div>
       </div>
       <template #footer>
-        <Button label="Annuler" @click="showGenerateDialog = false" class="p-button-text" />
-        <Button label="Générer" @click="generateRents" :loading="generating" />
+        <div class="flex justify-end gap-2">
+          <button @click="showGenerateDialog = false" class="btn">Annuler</button>
+          <button @click="generateRents" :disabled="generating" class="btn btn-primary">
+            {{ generating ? 'Génération...' : 'Générer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
+    <!-- Dialog Payment -->
     <Dialog
       v-model:visible="showPaymentDialog"
       header="Enregistrer un paiement"
       :modal="true"
       :style="{ width: '400px' }"
     >
-      <div class="payment-form">
-        <div class="p-field">
-          <label>Montant payé</label>
-          <InputNumber v-model="paymentForm.paidAmount" mode="currency" currency="EUR" required />
-        </div>
-        <div class="p-field">
-          <label>Date de paiement</label>
-          <Calendar v-model="paymentForm.paymentDate" dateFormat="dd/mm/yy" required />
-        </div>
-        <div class="p-field">
-          <label>Moyen de paiement</label>
-          <Dropdown
-            v-model="paymentForm.paymentMethod"
-            :options="paymentMethods"
-            optionLabel="label"
-            optionValue="value"
-            required
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Montant payé</span>
+          </label>
+          <InputNumber
+            v-model="paymentForm.paidAmount"
+            mode="currency"
+            currency="EUR"
+            locale="fr-FR"
+            class="w-full"
           />
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Date de paiement</span>
+          </label>
+          <Calendar
+            v-model="paymentForm.paymentDate"
+            dateFormat="dd/mm/yy"
+            class="w-full"
+          />
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Moyen de paiement</span>
+          </label>
+          <select v-model="paymentForm.paymentMethod" class="select select-bordered w-full">
+            <option v-for="method in paymentMethods" :key="method.value" :value="method.value">
+              {{ method.label }}
+            </option>
+          </select>
         </div>
       </div>
       <template #footer>
-        <Button label="Annuler" @click="showPaymentDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" @click="savePayment" :loading="saving" />
+        <div class="flex justify-end gap-2">
+          <button @click="showPaymentDialog = false" class="btn">Annuler</button>
+          <button @click="savePayment" :disabled="saving" class="btn btn-primary">
+            {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
   </div>
@@ -268,13 +299,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
-import Tag from 'primevue/tag'
 import InputNumber from 'primevue/inputnumber'
 import Calendar from 'primevue/calendar'
 
@@ -339,6 +364,27 @@ const paymentMethods = [
   { label: 'Prélèvement', value: 'prelevement' }
 ]
 
+// Computed stats
+const pendingCount = computed(() => {
+  return rents.value.filter(r => r.status === 'en_attente').length
+})
+
+const lateCount = computed(() => {
+  return rents.value.filter(r => r.status === 'en_retard').length
+})
+
+const paidCount = computed(() => {
+  return rents.value.filter(r => r.status === 'paye').length
+})
+
+const totalPaidAmount = computed(() => {
+  return rents.value.reduce((sum, r) => sum + (parseFloat(r.paidAmount) || 0), 0)
+})
+
+const totalExpectedAmount = computed(() => {
+  return rents.value.reduce((sum, r) => sum + (parseFloat(r.expectedAmount) || 0), 0)
+})
+
 const loadRents = async () => {
   loading.value = true
   try {
@@ -348,7 +394,7 @@ const loadRents = async () => {
     if (filters.status) params.status = filters.status
 
     const response = await api.get('/api/rents', { params })
-    rents.value = response.data.data
+    rents.value = response.data.data || []
   } catch (error) {
     toast.add({
       severity: 'error',
@@ -457,14 +503,24 @@ const downloadReminder = async (rent) => {
   }
 }
 
-const getStatusSeverity = (status) => {
-  const severityMap = {
-    en_attente: 'warning',
-    paye: 'success',
-    partiel: 'info',
-    en_retard: 'danger'
+const getBadgeClass = (status) => {
+  const classMap = {
+    en_attente: 'badge-warning',
+    paye: 'badge-success',
+    partiel: 'badge-info',
+    en_retard: 'badge-error'
   }
-  return severityMap[status] || 'info'
+  return classMap[status] || 'badge-ghost'
+}
+
+const getStatusLabel = (status) => {
+  const labelMap = {
+    en_attente: 'En attente',
+    paye: 'Payé',
+    partiel: 'Partiel',
+    en_retard: 'En retard'
+  }
+  return labelMap[status] || status
 }
 
 const getMonthName = (month) => {
@@ -482,28 +538,3 @@ onMounted(() => {
   loadRents()
 })
 </script>
-
-<style scoped>
-.filters {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.generate-form,
-.payment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.p-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.p-field label {
-  font-weight: 600;
-}
-</style>

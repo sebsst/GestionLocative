@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-base-200 text-base-content;
+  }
+}
+
+@layer components {
+  /* Compatibilité avec le code existant - utilisation directe des classes DaisyUI */
+  .card {
+    @apply bg-base-100 shadow-sm rounded-xl p-6;
+  }
+}
+
+/* Fix pour les modals PrimeVue avec DaisyUI - DOIT être en dehors du @layer pour avoir la priorité */
+.p-dialog {
+  background-color: oklch(var(--b1)) !important;
+  color: oklch(var(--bc)) !important;
+}
+
+.p-dialog .p-dialog-header {
+  background-color: oklch(var(--b1)) !important;
+  color: oklch(var(--bc)) !important;
+  border-bottom: 1px solid oklch(var(--b3)) !important;
+}
+
+.p-dialog .p-dialog-content {
+  background-color: oklch(var(--b1)) !important;
+  color: oklch(var(--bc)) !important;
+}
+
+.p-dialog .p-dialog-footer {
+  background-color: oklch(var(--b1)) !important;
+  border-top: 1px solid oklch(var(--b3)) !important;
+}

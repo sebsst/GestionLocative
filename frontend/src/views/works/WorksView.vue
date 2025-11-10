@@ -1,390 +1,510 @@
 <template>
-  <div class="modern-view">
-    <!-- En-tête moderne -->
-    <div class="page-header-modern">
+  <div class="p-8">
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="page-title-modern">Gestion des travaux</h1>
-        <p class="subtitle-modern">Suivi et gestion de vos interventions</p>
+        <h1 class="text-3xl font-bold">Gestion des travaux</h1>
+        <p class="text-base-content/70 mt-1">Suivi et gestion de vos interventions</p>
       </div>
-      <Button
-        label="Nouveaux travaux"
-        icon="pi pi-plus"
+      <button
         @click="showDialog = true"
-        class="p-button-rounded p-button-lg p-button-success"
-      />
+        class="btn btn-primary gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nouveaux travaux
+      </button>
     </div>
 
-    <!-- Cartes de statistiques -->
-    <div class="stats-grid">
-      <div class="stat-card stat-total">
-        <div class="stat-icon">
-          <i class="pi pi-wrench"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Total travaux</div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Total travaux</div>
           <div class="stat-value">{{ works.length }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-pending">
-        <div class="stat-icon">
-          <i class="pi pi-clock"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Prévus</div>
+      <div class="stats shadow bg-info text-info-content">
+        <div class="stat">
+          <div class="stat-title text-info-content/70">Prévus</div>
           <div class="stat-value">{{ pendingCount }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-progress">
-        <div class="stat-icon">
-          <i class="pi pi-cog"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">En cours</div>
+      <div class="stats shadow bg-warning text-warning-content">
+        <div class="stat">
+          <div class="stat-title text-warning-content/70">En cours</div>
           <div class="stat-value">{{ inProgressCount }}</div>
         </div>
       </div>
 
-      <div class="stat-card stat-done">
-        <div class="stat-icon">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Terminés</div>
+      <div class="stats shadow bg-success text-success-content">
+        <div class="stat">
+          <div class="stat-title text-success-content/70">Terminés</div>
           <div class="stat-value">{{ completedCount }}</div>
         </div>
       </div>
     </div>
 
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Recherche</span>
+            </label>
+            <input
+              v-model="filters.search"
+              type="text"
+              placeholder="Nature des travaux..."
+              class="input input-bordered w-full"
+              @input="loadWorks"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Type</span>
+            </label>
+            <select v-model="filters.type" class="select select-bordered w-full" @change="loadWorks">
+              <option value="">Tous les types</option>
+              <option v-for="type in workTypes" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut</span>
+            </label>
+            <select v-model="filters.status" class="select select-bordered w-full" @change="loadWorks">
+              <option value="">Tous les statuts</option>
+              <option value="prevu">Prévu</option>
+              <option value="en_cours">En cours</option>
+              <option value="termine">Terminé</option>
+              <option value="paye">Payé</option>
+              <option value="annule">Annulé</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+
+    <!-- Table -->
+    <div v-else-if="works.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Bien</th>
+              <th>Nature</th>
+              <th class="text-center">Type</th>
+              <th>Artisan</th>
+              <th class="text-right">Montant</th>
+              <th>Date</th>
+              <th class="text-center">Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="work in works" :key="work.id" class="hover">
+              <td>
+                <div class="font-medium">
+                  {{ work.Property?.name }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  {{ work.nature }}
+                </div>
+                <div v-if="work.description" class="text-xs opacity-60 mt-1">
+                  {{ work.description.substring(0, 50) }}{{ work.description.length > 50 ? '...' : '' }}
+                </div>
+              </td>
+              <td class="text-center">
+                <div
+                  :class="getTypeBadgeClass(work.type)"
+                  class="badge badge-sm"
+                >
+                  {{ getTypeLabel(work.type) }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  {{ work.Artisan?.name || '-' }}
+                </div>
+                <div v-if="work.Artisan?.company" class="text-xs opacity-60">
+                  {{ work.Artisan.company }}
+                </div>
+              </td>
+              <td class="text-right">
+                <div class="text-sm font-medium">
+                  {{ formatCurrency(work.amount || work.estimatedAmount) }}
+                </div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  {{ formatDate(work.workDate || work.estimatedDate) }}
+                </div>
+              </td>
+              <td class="text-center">
+                <div
+                  :class="getStatusBadgeClass(work.status)"
+                  class="badge badge-sm"
+                >
+                  {{ getStatusLabel(work.status) }}
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    @click="editWork(work)"
+                    class="btn btn-ghost btn-xs"
+                    title="Modifier"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteWork(work)"
+                    class="btn btn-ghost btn-xs text-error"
+                    title="Supprimer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="card bg-base-100 shadow-xl">
+      <div class="card-body items-center text-center py-12">
+        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">Aucun travaux trouvé</h3>
+        <p class="text-base-content/60">{{ filters.search ? 'Essayez de modifier les filtres' : 'Ajoutez vos premiers travaux' }}</p>
+      </div>
+    </div>
+
+    <!-- Dialog Create/Edit Work -->
     <Dialog
       v-model:visible="showDialog"
+      :header="editingWork ? 'Modifier les travaux' : 'Nouveaux travaux'"
       :modal="true"
-      header="Nouveaux travaux"
-      :style="{ width: '500px' }"
-      :closable="false"
-      class="modern-dialog"
+      :style="{ width: '600px' }"
     >
-      <div class="modern-form">
-        <div class="p-field">
-          <label>Bien</label>
-          <Dropdown
-            v-model="workForm.propertyId"
-            :options="properties"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Sélectionnez un bien"
-            class="w-full"
-            required
-          />
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Bien *</span>
+          </label>
+          <select v-model="workForm.propertyId" class="select select-bordered w-full" required>
+            <option value="">Sélectionnez un bien</option>
+            <option v-for="property in properties" :key="property.id" :value="property.id">
+              {{ property.name }}
+            </option>
+          </select>
         </div>
-        <div class="p-field">
-          <label>Type de travaux</label>
-          <Dropdown
-            v-model="workForm.type"
-            :options="workTypes"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Sélectionnez un type"
-            class="w-full"
-            required
-          />
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Type de travaux *</span>
+          </label>
+          <select v-model="workForm.type" class="select select-bordered w-full" required>
+            <option value="">Sélectionnez un type</option>
+            <option v-for="type in workTypes" :key="type.value" :value="type.value">
+              {{ type.label }}
+            </option>
+          </select>
         </div>
-        <div class="p-field">
-          <label>Nature des travaux</label>
-          <InputText
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Nature des travaux *</span>
+          </label>
+          <input
             v-model="workForm.nature"
+            type="text"
             placeholder="Nature des travaux"
-            class="w-full"
+            class="input input-bordered w-full"
             required
           />
         </div>
-        <div class="p-field">
-          <label>Description</label>
-          <Textarea
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Description</span>
+          </label>
+          <textarea
             v-model="workForm.description"
             rows="3"
             placeholder="Description détaillée des travaux"
-            class="w-full"
-          />
+            class="textarea textarea-bordered w-full"
+          ></textarea>
         </div>
-        <div class="p-field">
-          <label>Artisan</label>
-          <div style="display: flex; gap: 0.5rem;">
-            <Dropdown
-              v-model="workForm.artisanId"
-              :options="artisans"
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Sélectionnez un artisan"
-              style="flex: 1;"
-              :filter="true"
-            />
-            <Button
-              icon="pi pi-plus"
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Artisan</span>
+          </label>
+          <div class="flex gap-2">
+            <select v-model="workForm.artisanId" class="select select-bordered flex-1">
+              <option value="">Sélectionnez un artisan</option>
+              <option v-for="artisan in artisans" :key="artisan.id" :value="artisan.id">
+                {{ artisan.name }}{{ artisan.company ? ` - ${artisan.company}` : '' }}
+              </option>
+            </select>
+            <button
               @click="showArtisanDialog = true"
-              v-tooltip.top="'Créer un nouvel artisan'"
-              class="p-button-success"
+              class="btn btn-primary btn-square"
+              title="Créer un nouvel artisan"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Montant estimé</span>
+            </label>
+            <InputNumber
+              v-model="workForm.estimatedAmount"
+              mode="currency"
+              currency="EUR"
+              locale="fr-FR"
+              class="w-full"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Date prévue</span>
+            </label>
+            <Calendar
+              v-model="workForm.estimatedDate"
+              dateFormat="dd/mm/yy"
+              class="w-full"
             />
           </div>
         </div>
-        <div class="p-field">
-          <label>Montant estimé</label>
-          <InputNumber
-            v-model="workForm.estimatedAmount"
-            mode="currency"
-            currency="EUR"
-            locale="fr-FR"
-            class="w-full"
-          />
-        </div>
-        <div class="p-field">
-          <label>Date prévue</label>
-          <Calendar
-            v-model="workForm.estimatedDate"
-            dateFormat="dd/mm/yy"
-            class="w-full"
-          />
-        </div>
-        <div class="p-field-checkbox">
-          <Checkbox
-            v-model="workForm.isCommon"
-            :binary="true"
-          />
-          <label class="ml-2">Travaux communs</label>
+
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start gap-2">
+            <input
+              type="checkbox"
+              id="isCommon"
+              v-model="workForm.isCommon"
+              class="checkbox"
+            />
+            <span class="label-text">Travaux communs</span>
+          </label>
         </div>
       </div>
+
       <template #footer>
-        <Button
-          label="Annuler"
-          icon="pi pi-times"
-          @click="showDialog = false"
-          class="p-button-text"
-        />
-        <Button
-          label="Créer"
-          icon="pi pi-check"
-          @click="createWork"
-          :loading="saving"
-        />
+        <div class="flex justify-end gap-2">
+          <button @click="closeDialog" class="btn">Annuler</button>
+          <button @click="saveWork" :disabled="saving" class="btn btn-primary">
+            {{ saving ? 'Enregistrement...' : (editingWork ? 'Modifier' : 'Créer') }}
+          </button>
+        </div>
       </template>
     </Dialog>
 
-    <!-- Dialog Créer un artisan -->
+    <!-- Dialog Create Artisan -->
     <Dialog
       v-model:visible="showArtisanDialog"
-      :modal="true"
       header="Créer un nouvel artisan"
+      :modal="true"
       :style="{ width: '600px' }"
-      :closable="false"
-      class="modern-dialog"
     >
-      <div class="modern-form">
-        <div class="p-field">
-          <label>Nom *</label>
-          <InputText
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Nom *</span>
+          </label>
+          <input
             v-model="artisanForm.name"
+            type="text"
             placeholder="Nom de l'artisan"
-            class="w-full"
+            class="input input-bordered w-full"
             required
           />
         </div>
-        <div class="p-field">
-          <label>Entreprise</label>
-          <InputText
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Entreprise</span>
+          </label>
+          <input
             v-model="artisanForm.company"
+            type="text"
             placeholder="Nom de l'entreprise"
-            class="w-full"
+            class="input input-bordered w-full"
           />
         </div>
-        <div class="p-field">
-          <label>Spécialité</label>
-          <InputText
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Spécialité</span>
+          </label>
+          <input
             v-model="artisanForm.specialty"
+            type="text"
             placeholder="Ex: Plomberie, Électricité, Peinture..."
-            class="w-full"
+            class="input input-bordered w-full"
           />
         </div>
-        <div class="p-field-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="p-field">
-            <label>Téléphone</label>
-            <InputText
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Téléphone</span>
+            </label>
+            <input
               v-model="artisanForm.phone"
+              type="tel"
               placeholder="Téléphone"
-              class="w-full"
+              class="input input-bordered w-full"
             />
           </div>
-          <div class="p-field">
-            <label>Email</label>
-            <InputText
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Email</span>
+            </label>
+            <input
               v-model="artisanForm.email"
               type="email"
               placeholder="Email"
-              class="w-full"
+              class="input input-bordered w-full"
             />
           </div>
         </div>
-        <div class="p-field">
-          <label>Adresse</label>
-          <InputText
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Adresse</span>
+          </label>
+          <input
             v-model="artisanForm.address"
+            type="text"
             placeholder="Adresse"
-            class="w-full"
+            class="input input-bordered w-full"
           />
         </div>
-        <div class="p-field-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
-          <div class="p-field">
-            <label>Ville</label>
-            <InputText
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Ville</span>
+            </label>
+            <input
               v-model="artisanForm.city"
+              type="text"
               placeholder="Ville"
-              class="w-full"
+              class="input input-bordered w-full"
             />
           </div>
-          <div class="p-field">
-            <label>Code postal</label>
-            <InputText
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Code postal</span>
+            </label>
+            <input
               v-model="artisanForm.postalCode"
+              type="text"
               placeholder="Code postal"
-              class="w-full"
+              class="input input-bordered w-full"
             />
           </div>
         </div>
-        <div class="p-field">
-          <label>SIRET</label>
-          <InputText
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">SIRET</span>
+          </label>
+          <input
             v-model="artisanForm.siret"
+            type="text"
             placeholder="Numéro SIRET"
-            class="w-full"
+            class="input input-bordered w-full"
           />
         </div>
-        <div class="p-field">
-          <label>Notes</label>
-          <Textarea
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Notes</span>
+          </label>
+          <textarea
             v-model="artisanForm.notes"
             rows="3"
             placeholder="Notes supplémentaires"
-            class="w-full"
-          />
+            class="textarea textarea-bordered w-full"
+          ></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button
-          label="Annuler"
-          icon="pi pi-times"
-          @click="showArtisanDialog = false"
-          class="p-button-text"
-        />
-        <Button
-          label="Créer"
-          icon="pi pi-check"
-          @click="createArtisan"
-          :loading="savingArtisan"
-        />
+        <div class="flex justify-end gap-2">
+          <button @click="showArtisanDialog = false" class="btn">Annuler</button>
+          <button @click="createArtisan" :disabled="savingArtisan" class="btn btn-primary">
+            {{ savingArtisan ? 'Création...' : 'Créer' }}
+          </button>
+        </div>
       </template>
     </Dialog>
-
-    <Card class="modern-card">
-      <template #content>
-        <DataTable
-          :value="works"
-          :loading="loading"
-          :paginator="true"
-          :rows="10"
-          responsiveLayout="scroll"
-          class="modern-table"
-          stripedRows
-        >
-          <Column field="Property.name" header="Bien"></Column>
-          <Column field="nature" header="Nature"></Column>
-          <Column field="type" header="Type">
-            <template #body="{ data }">
-              <Tag :value="data.type" :severity="getWorkTypeSeverity(data.type)" />
-            </template>
-          </Column>
-          <Column field="Artisan.name" header="Artisan"></Column>
-          <Column field="amount" header="Montant">
-            <template #body="{ data }">
-              {{ formatCurrency(data.amount || data.estimatedAmount) }}
-            </template>
-          </Column>
-          <Column field="workDate" header="Date">
-            <template #body="{ data }">
-              {{ formatDate(data.workDate || data.estimatedDate) }}
-            </template>
-          </Column>
-          <Column field="status" header="Statut">
-            <template #body="{ data }">
-              <Tag
-                :value="data.status"
-                :severity="getStatusSeverity(data.status)"
-              />
-            </template>
-          </Column>
-          <Column header="Actions">
-            <template #body="{ data }">
-              <Button
-                icon="pi pi-pencil"
-                class="p-button-rounded p-button-text"
-                @click="editWork(data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-danger"
-                @click="deleteWork(data)"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { useConfirm } from 'primevue/useconfirm'
 import api from '@/services/api'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
-import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
-import Checkbox from 'primevue/checkbox'
-import Textarea from 'primevue/textarea'
 
 const toast = useToast()
-const confirm = useConfirm()
 
 const works = ref([])
 const properties = ref([])
 const artisans = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
-const saving = ref(false)
 const showArtisanDialog = ref(false)
+const saving = ref(false)
 const savingArtisan = ref(false)
+const editingWork = ref(null)
 
-// Computed properties for statistics
-const pendingCount = computed(() => {
-  return works.value.filter(w => w.status === 'prevu').length
+const filters = reactive({
+  search: '',
+  type: '',
+  status: ''
 })
 
-const inProgressCount = computed(() => {
-  return works.value.filter(w => w.status === 'en_cours').length
-})
-
-const completedCount = computed(() => {
-  return works.value.filter(w => w.status === 'termine' || w.status === 'paye').length
-})
-
-const workForm = ref({
+const workForm = reactive({
   propertyId: null,
   type: null,
   nature: '',
@@ -396,7 +516,7 @@ const workForm = ref({
   status: 'prevu'
 })
 
-const artisanForm = ref({
+const artisanForm = reactive({
   name: '',
   company: '',
   specialty: '',
@@ -416,25 +536,29 @@ const workTypes = [
   { label: 'Amélioration', value: 'amelioration' }
 ]
 
-const resetForm = () => {
-  workForm.value = {
-    propertyId: null,
-    type: null,
-    nature: '',
-    description: '',
-    artisanId: null,
-    estimatedAmount: null,
-    estimatedDate: null,
-    isCommon: false,
-    status: 'prevu'
-  }
-}
+// Computed stats
+const pendingCount = computed(() => {
+  return works.value.filter(w => w.status === 'prevu').length
+})
+
+const inProgressCount = computed(() => {
+  return works.value.filter(w => w.status === 'en_cours').length
+})
+
+const completedCount = computed(() => {
+  return works.value.filter(w => w.status === 'termine' || w.status === 'paye').length
+})
 
 const loadWorks = async () => {
   loading.value = true
   try {
-    const response = await api.get('/api/works')
-    works.value = response.data.data
+    const params = {}
+    if (filters.search) params.search = filters.search
+    if (filters.type) params.type = filters.type
+    if (filters.status) params.status = filters.status
+
+    const response = await api.get('/api/works', { params })
+    works.value = response.data.data || []
   } catch (error) {
     toast.add({
       severity: 'error',
@@ -450,7 +574,7 @@ const loadWorks = async () => {
 const loadProperties = async () => {
   try {
     const response = await api.get('/api/properties')
-    properties.value = response.data.data
+    properties.value = response.data.data || []
   } catch (error) {
     console.error('Erreur lors du chargement des biens:', error)
   }
@@ -459,39 +583,28 @@ const loadProperties = async () => {
 const loadArtisans = async () => {
   try {
     const response = await api.get('/api/works/artisans/list')
-    artisans.value = response.data.data
+    artisans.value = response.data.data || []
   } catch (error) {
     console.error('Erreur lors du chargement des artisans:', error)
   }
 }
 
-const createWork = async () => {
-  saving.value = true
-  try {
-    await api.post('/api/works', workForm.value)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Travaux créés avec succès',
-      life: 3000
-    })
-    showDialog.value = false
-    resetForm()
-    loadWorks()
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: error.response?.data?.error?.message || 'Impossible de créer les travaux',
-      life: 3000
-    })
-  } finally {
-    saving.value = false
-  }
+const resetWorkForm = () => {
+  Object.assign(workForm, {
+    propertyId: null,
+    type: null,
+    nature: '',
+    description: '',
+    artisanId: null,
+    estimatedAmount: null,
+    estimatedDate: null,
+    isCommon: false,
+    status: 'prevu'
+  })
 }
 
 const resetArtisanForm = () => {
-  artisanForm.value = {
+  Object.assign(artisanForm, {
     name: '',
     company: '',
     specialty: '',
@@ -502,11 +615,101 @@ const resetArtisanForm = () => {
     postalCode: '',
     siret: '',
     notes: ''
+  })
+}
+
+const closeDialog = () => {
+  showDialog.value = false
+  editingWork.value = null
+  resetWorkForm()
+}
+
+const saveWork = async () => {
+  if (!workForm.propertyId || !workForm.type || !workForm.nature) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Attention',
+      detail: 'Veuillez remplir tous les champs obligatoires',
+      life: 3000
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    if (editingWork.value) {
+      await api.put(`/api/works/${editingWork.value.id}`, workForm)
+      toast.add({
+        severity: 'success',
+        summary: 'Succès',
+        detail: 'Travaux modifiés avec succès',
+        life: 3000
+      })
+    } else {
+      await api.post('/api/works', workForm)
+      toast.add({
+        severity: 'success',
+        summary: 'Succès',
+        detail: 'Travaux créés avec succès',
+        life: 3000
+      })
+    }
+    closeDialog()
+    loadWorks()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: error.response?.data?.error?.message || 'Impossible de sauvegarder les travaux',
+      life: 3000
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+const editWork = (work) => {
+  editingWork.value = work
+  Object.assign(workForm, {
+    propertyId: work.propertyId,
+    type: work.type,
+    nature: work.nature,
+    description: work.description || '',
+    artisanId: work.artisanId,
+    estimatedAmount: work.estimatedAmount,
+    estimatedDate: work.estimatedDate ? new Date(work.estimatedDate) : null,
+    isCommon: work.isCommon || false,
+    status: work.status
+  })
+  showDialog.value = true
+}
+
+const deleteWork = async (work) => {
+  if (!confirm(`Voulez-vous vraiment supprimer ces travaux : ${work.nature} ?`)) {
+    return
+  }
+
+  try {
+    await api.delete(`/api/works/${work.id}`)
+    toast.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: 'Travaux supprimés avec succès',
+      life: 3000
+    })
+    loadWorks()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de supprimer les travaux',
+      life: 3000
+    })
   }
 }
 
 const createArtisan = async () => {
-  if (!artisanForm.value.name) {
+  if (!artisanForm.name) {
     toast.add({
       severity: 'warn',
       summary: 'Attention',
@@ -518,7 +721,7 @@ const createArtisan = async () => {
 
   savingArtisan.value = true
   try {
-    const response = await api.post('/api/works/artisans', artisanForm.value)
+    const response = await api.post('/api/works/artisans', artisanForm)
     toast.add({
       severity: 'success',
       summary: 'Succès',
@@ -526,17 +729,12 @@ const createArtisan = async () => {
       life: 3000
     })
 
-    // Fermer le dialogue
     showArtisanDialog.value = false
-
-    // Réinitialiser le formulaire
     resetArtisanForm()
-
-    // Recharger la liste des artisans
     await loadArtisans()
 
-    // Sélectionner automatiquement le nouvel artisan dans le formulaire de travaux
-    workForm.value.artisanId = response.data.data.id
+    // Sélectionner automatiquement le nouvel artisan
+    workForm.artisanId = response.data.data.id
   } catch (error) {
     toast.add({
       severity: 'error',
@@ -549,56 +747,46 @@ const createArtisan = async () => {
   }
 }
 
-const editWork = (work) => {
-  // À implémenter
-}
-
-const deleteWork = (work) => {
-  confirm.require({
-    message: 'Voulez-vous vraiment supprimer ces travaux ?',
-    header: 'Confirmation de suppression',
-    icon: 'pi pi-exclamation-triangle',
-    accept: async () => {
-      try {
-        await api.delete(`/api/works/${work.id}`)
-        toast.add({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Travaux supprimés avec succès',
-          life: 3000
-        })
-        loadWorks()
-      } catch (error) {
-        toast.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Impossible de supprimer les travaux',
-          life: 3000
-        })
-      }
-    }
-  })
-}
-
-const getStatusSeverity = (status) => {
-  const severityMap = {
-    prevu: 'info',
-    en_cours: 'warning',
-    termine: 'success',
-    paye: 'success',
-    annule: 'danger'
+const getTypeBadgeClass = (type) => {
+  const classMap = {
+    reparation: 'badge-error',
+    renovation: 'badge-warning',
+    entretien: 'badge-info',
+    amelioration: 'badge-success'
   }
-  return severityMap[status] || 'info'
+  return classMap[type] || 'badge-ghost'
 }
 
-const getWorkTypeSeverity = (type) => {
-  const severityMap = {
-    reparation: 'danger',
-    renovation: 'warning',
-    entretien: 'info',
-    amelioration: 'success'
+const getTypeLabel = (type) => {
+  const labelMap = {
+    reparation: 'Réparation',
+    renovation: 'Rénovation',
+    entretien: 'Entretien',
+    amelioration: 'Amélioration'
   }
-  return severityMap[type] || 'info'
+  return labelMap[type] || type
+}
+
+const getStatusBadgeClass = (status) => {
+  const classMap = {
+    prevu: 'badge-info',
+    en_cours: 'badge-warning',
+    termine: 'badge-success',
+    paye: 'badge-success',
+    annule: 'badge-error'
+  }
+  return classMap[status] || 'badge-ghost'
+}
+
+const getStatusLabel = (status) => {
+  const labelMap = {
+    prevu: 'Prévu',
+    en_cours: 'En cours',
+    termine: 'Terminé',
+    paye: 'Payé',
+    annule: 'Annulé'
+  }
+  return labelMap[status] || status
 }
 
 const formatCurrency = (value) => {
@@ -618,18 +806,3 @@ onMounted(() => {
   loadArtisans()
 })
 </script>
-
-<style scoped>
-/* Styles spécifiques uniquement - les styles globaux sont dans modern-views.css */
-
-.p-field-checkbox {
-  display: flex;
-  align-items: center;
-  padding: 1rem 0;
-  gap: 0.5rem;
-}
-
-:deep(.p-tag) {
-  text-transform: capitalize;
-}
-</style>

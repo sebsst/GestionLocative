@@ -1,330 +1,334 @@
 <template>
-  <div class="properties-view">
-    <!-- En-tête moderne -->
-    <div class="page-header-modern">
+  <div class="p-8">
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="page-title-modern">Biens immobiliers</h1>
-        <p class="subtitle-modern">Gestion de votre patrimoine immobilier</p>
+        <h1 class="text-3xl font-bold">Biens immobiliers</h1>
+        <p class="text-base-content/70 mt-1">Gestion de votre patrimoine immobilier</p>
       </div>
-      <Button
-        label="Nouveau bien"
-        icon="pi pi-plus"
+      <button
         @click="showDialog = true"
-        class="p-button-rounded p-button-lg p-button-success"
-      />
+        class="btn btn-primary gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nouveau bien
+      </button>
     </div>
 
-    <!-- Cartes de statistiques -->
-    <div class="stats-grid">
-      <div class="stat-card stat-primary">
-        <div class="stat-icon">
-          <i class="pi pi-home"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Total biens</div>
-          <div class="stat-value">{{ properties.length }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-available">
-        <div class="stat-icon">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Disponibles</div>
-          <div class="stat-value">{{ availableCount }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-rented">
-        <div class="stat-icon">
-          <i class="pi pi-users"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Loués</div>
-          <div class="stat-value">{{ rentedCount }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-revenue">
-        <div class="stat-icon">
-          <i class="pi pi-euro"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Revenus mensuels</div>
-          <div class="stat-value-small">{{ formatCurrency(totalRevenue) }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Contenu principal -->
-    <Card class="modern-card">
-      <template #content>
-        <!-- Filtres modernes -->
-        <div class="filters-modern">
-          <span class="p-input-icon-left search-input">
-            <i class="pi pi-search" />
-            <InputText
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Recherche</span>
+            </label>
+            <input
               v-model="filters.search"
-              placeholder="Rechercher un bien..."
+              type="text"
+              placeholder="Nom du bien ou adresse..."
+              class="input input-bordered w-full"
               @input="loadProperties"
-              class="w-full"
             />
-          </span>
-          <Dropdown
-            v-model="filters.type"
-            :options="propertyTypes"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Type de bien"
-            @change="loadProperties"
-            showClear
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="dropdown-value">
-                <i class="pi pi-tag"></i>
-                <span>{{ propertyTypes.find(t => t.value === slotProps.value)?.label }}</span>
-              </div>
-              <span v-else>Type de bien</span>
-            </template>
-          </Dropdown>
-          <Dropdown
-            v-model="filters.status"
-            :options="statusOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Statut"
-            @change="loadProperties"
-            showClear
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="dropdown-value">
-                <i class="pi pi-flag"></i>
-                <span>{{ statusOptions.find(s => s.value === slotProps.value)?.label }}</span>
-              </div>
-              <span v-else>Statut</span>
-            </template>
-          </Dropdown>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Type de bien</span>
+            </label>
+            <select v-model="filters.type" class="select select-bordered w-full" @change="loadProperties">
+              <option value="">Tous les types</option>
+              <option v-for="type in propertyTypes" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut</span>
+            </label>
+            <select v-model="filters.status" class="select select-bordered w-full" @change="loadProperties">
+              <option value="">Tous les statuts</option>
+              <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Table moderne -->
-        <DataTable
-          :value="properties"
-          :loading="loading"
-          :paginator="true"
-          :rows="10"
-          class="modern-table"
-          stripedRows
-        >
-          <Column field="name" header="Nom" sortable>
-            <template #body="{ data }">
-              <div class="name-cell">
-                <i class="pi pi-building"></i>
-                <strong>{{ data.name }}</strong>
-              </div>
-            </template>
-          </Column>
-          <Column field="type" header="Type" sortable>
-            <template #body="{ data }">
-              <Tag :value="formatPropertyType(data.type)" severity="info" icon="pi pi-tag" />
-            </template>
-          </Column>
-          <Column field="address" header="Adresse">
-            <template #body="{ data }">
-              <div class="address-cell">
-                <i class="pi pi-map-marker"></i>
-                <span>{{ data.address }}</span>
-              </div>
-            </template>
-          </Column>
-          <Column field="city" header="Ville" sortable>
-            <template #body="{ data }">
-              {{ data.city }}
-            </template>
-          </Column>
-          <Column field="surface" header="Surface" sortable>
-            <template #body="{ data }">
-              <Tag :value="`${data.surface} m²`" severity="secondary" icon="pi pi-th-large" />
-            </template>
-          </Column>
-          <Column field="currentRent" header="Loyer" sortable>
-            <template #body="{ data }">
-              <span class="currency-cell">{{ formatCurrency(data.currentRent) }}</span>
-            </template>
-          </Column>
-          <Column field="status" header="Statut" sortable>
-            <template #body="{ data }">
-              <Tag
-                :value="formatStatus(data.status)"
-                :severity="getStatusSeverity(data.status)"
-                :icon="getStatusIcon(data.status)"
-              />
-            </template>
-          </Column>
-          <Column header="Actions" :frozen="true" alignFrozen="right">
-            <template #body="{ data }">
-              <div class="action-buttons">
-                <Button
-                  icon="pi pi-eye"
-                  class="p-button-rounded p-button-sm p-button-info"
-                  @click="viewProperty(data)"
-                  v-tooltip.top="'Voir les détails'"
-                />
-                <Button
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-sm p-button-warning"
-                  @click="editProperty(data)"
-                  v-tooltip.top="'Modifier'"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-sm p-button-danger"
-                  @click="deleteProperty(data)"
-                  v-tooltip.top="'Supprimer'"
-                />
-              </div>
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
 
-    <!-- Dialog moderne -->
+    <!-- Table -->
+    <div v-else-if="properties.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Bien</th>
+              <th>Type</th>
+              <th>Adresse</th>
+              <th>Ville</th>
+              <th class="text-center">Surface</th>
+              <th class="text-right">Loyer</th>
+              <th class="text-center">Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="property in properties" :key="property.id" class="hover">
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="avatar placeholder">
+                    <div class="bg-primary text-primary-content rounded-lg w-10">
+                      <span class="text-sm font-bold">{{ property.name.charAt(0).toUpperCase() }}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-medium">{{ property.name }}</div>
+                    <div class="text-sm opacity-60">{{ property.postalCode }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="badge badge-info badge-sm">{{ formatPropertyType(property.type) }}</div>
+              </td>
+              <td>{{ property.address }}</td>
+              <td class="opacity-70">{{ property.city }}</td>
+              <td class="text-center">{{ property.surface }} m²</td>
+              <td class="text-right font-semibold">{{ formatCurrency(property.currentRent) }}</td>
+              <td class="text-center">
+                <div :class="getStatusBadgeClass(property.status)" class="badge badge-sm">
+                  {{ getStatusLabel(property.status) }}
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    @click="viewProperty(property)"
+                    class="btn btn-ghost btn-xs"
+                    title="Voir détails"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="editProperty(property)"
+                    class="btn btn-ghost btn-xs"
+                    title="Modifier"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteProperty(property)"
+                    class="btn btn-ghost btn-xs text-error"
+                    title="Supprimer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="card bg-base-100 shadow-xl">
+      <div class="card-body items-center text-center py-12">
+        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">Aucun bien trouvé</h3>
+        <p class="text-base-content/60">{{ filters.search ? 'Essayez de modifier les filtres' : 'Ajoutez votre premier bien immobilier' }}</p>
+      </div>
+    </div>
+
+    <!-- Dialog Create/Edit -->
     <Dialog
       v-model:visible="showDialog"
       :header="editingProperty ? 'Modifier le bien' : 'Nouveau bien'"
       :modal="true"
-      :style="{ width: '600px', maxHeight: '90vh' }"
-      class="modern-dialog"
+      :style="{ width: '700px' }"
     >
-      <div class="property-form" style="max-height: 60vh; overflow-y: auto;">
-        <div class="p-field">
-          <label><i class="pi pi-tag"></i> Nom du bien *</label>
-          <InputText v-model="form.name" required class="w-full" placeholder="Ex: Appartement Centre-ville" />
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-home"></i> Type de bien *</label>
-          <Dropdown
-            v-model="form.type"
-            :options="propertyTypes"
-            optionLabel="label"
-            optionValue="value"
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Nom du bien *</span>
+          </label>
+          <input
+            v-model="propertyForm.name"
+            type="text"
+            placeholder="Appartement Centre-ville"
+            class="input input-bordered w-full"
             required
-            class="w-full"
-            placeholder="Sélectionnez un type"
           />
         </div>
-        <div class="p-field" v-if="form.type && form.type !== 'immeuble'">
-          <label><i class="pi pi-building"></i> Immeuble (optionnel)</label>
-          <Dropdown
-            v-model="form.buildingId"
-            :options="buildings"
-            optionLabel="name"
-            optionValue="id"
-            class="w-full"
-            placeholder="Sélectionnez un immeuble"
-            showClear
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Type de bien *</span>
+            </label>
+            <select v-model="propertyForm.type" class="select select-bordered w-full" required>
+              <option value="">Sélectionnez un type</option>
+              <option v-for="type in propertyTypes" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut *</span>
+            </label>
+            <select v-model="propertyForm.status" class="select select-bordered w-full" required>
+              <option value="">Sélectionnez un statut</option>
+              <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Adresse *</span>
+          </label>
+          <input
+            v-model="propertyForm.address"
+            type="text"
+            placeholder="123 Rue de la Paix"
+            class="input input-bordered w-full"
+            required
           />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-map-marker"></i> Adresse *</label>
-          <InputText v-model="form.address" required class="w-full" placeholder="Numéro et nom de rue" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Ville *</span>
+            </label>
+            <input
+              v-model="propertyForm.city"
+              type="text"
+              placeholder="Paris"
+              class="input input-bordered w-full"
+              required
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Code postal *</span>
+            </label>
+            <input
+              v-model="propertyForm.postalCode"
+              type="text"
+              placeholder="75001"
+              class="input input-bordered w-full"
+              required
+            />
+          </div>
         </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-building"></i> Ville *</label>
-            <InputText v-model="form.city" required class="w-full" placeholder="Ville" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Surface (m²)</span>
+            </label>
+            <InputNumber v-model="propertyForm.surface" :min="0" class="w-full" />
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Code postal *</label>
-            <InputText v-model="form.postalCode" required class="w-full" placeholder="Code postal" />
-          </div>
-        </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-th-large"></i> Surface (m²)</label>
-            <InputNumber v-model="form.surface" class="w-full" :min="0" />
-          </div>
-          <div class="p-field">
-            <label><i class="pi pi-th-large"></i> Nombre de pièces</label>
-            <InputNumber v-model="form.rooms" class="w-full" :min="0" />
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Nombre de pièces</span>
+            </label>
+            <InputNumber v-model="propertyForm.rooms" :min="0" class="w-full" />
           </div>
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-euro"></i> Loyer actuel (€)</label>
-          <InputNumber v-model="form.currentRent" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Loyer mensuel (€)</span>
+          </label>
+          <InputNumber v-model="propertyForm.currentRent" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
         </div>
-        <div class="p-field">
-          <label><i class="pi pi-align-left"></i> Description</label>
-          <Textarea v-model="form.description" rows="2" class="w-full" placeholder="Description du bien..." />
-        </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-id-card"></i> Numéro fiscal</label>
-            <InputText v-model="form.fiscalNumber" class="w-full" placeholder="Ex: 2024123456789" />
-          </div>
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Référence cadastrale</label>
-            <InputText v-model="form.cadastralReference" class="w-full" placeholder="Ex: 123 ABC 456" />
-          </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Description</span>
+          </label>
+          <textarea
+            v-model="propertyForm.description"
+            rows="3"
+            placeholder="Description du bien..."
+            class="textarea textarea-bordered w-full"
+          ></textarea>
         </div>
       </div>
+
       <template #footer>
-        <Button label="Annuler" @click="showDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" icon="pi pi-check" @click="saveProperty" :loading="saving" class="p-button-rounded" />
+        <div class="flex justify-end gap-2">
+          <button @click="closeDialog" class="btn btn-ghost">Annuler</button>
+          <button @click="saveProperty" :disabled="saving" class="btn btn-primary">
+            <span v-if="saving" class="loading loading-spinner loading-sm"></span>
+            {{ saving ? 'Enregistrement...' : (editingProperty ? 'Modifier' : 'Créer') }}
+          </button>
+        </div>
       </template>
     </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import { useConfirm } from 'primevue/useconfirm'
 import api from '@/services/api'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
-import Tag from 'primevue/tag'
+import InputNumber from 'primevue/inputnumber'
 
 const router = useRouter()
 const toast = useToast()
-const confirm = useConfirm()
 
 const properties = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
-const editingProperty = ref(null)
 const saving = ref(false)
+const editingProperty = ref(null)
 
 const filters = reactive({
   search: '',
-  type: null,
-  status: null
+  type: '',
+  status: ''
 })
 
-const form = reactive({
+const propertyForm = reactive({
   name: '',
   type: '',
-  buildingId: null,
+  status: 'disponible',
   address: '',
   city: '',
   postalCode: '',
   surface: null,
   rooms: null,
   currentRent: null,
-  description: '',
-  fiscalNumber: '',
-  cadastralReference: ''
+  description: ''
 })
 
 const propertyTypes = [
@@ -333,7 +337,7 @@ const propertyTypes = [
   { label: 'Immeuble', value: 'immeuble' },
   { label: 'Terrain', value: 'terrain' },
   { label: 'Garage', value: 'garage' },
-  { label: 'Fond de commerce', value: 'fond_commerce' },
+  { label: 'Local commercial', value: 'commercial' },
   { label: 'Meublé', value: 'meuble' }
 ]
 
@@ -344,25 +348,6 @@ const statusOptions = [
   { label: 'Vendu', value: 'vendu' }
 ]
 
-// Computed statistics
-const availableCount = computed(() => {
-  return properties.value.filter(p => p.status === 'disponible').length
-})
-
-const rentedCount = computed(() => {
-  return properties.value.filter(p => p.status === 'loue').length
-})
-
-const totalRevenue = computed(() => {
-  return properties.value
-    .filter(p => p.status === 'loue')
-    .reduce((sum, p) => sum + (parseFloat(p.currentRent) || 0), 0)
-})
-
-const buildings = computed(() => {
-  return properties.value.filter(p => p.type === 'immeuble')
-})
-
 const loadProperties = async () => {
   loading.value = true
   try {
@@ -372,7 +357,7 @@ const loadProperties = async () => {
     if (filters.status) params.status = filters.status
 
     const response = await api.get('/api/properties', { params })
-    properties.value = response.data.data
+    properties.value = response.data.data || []
   } catch (error) {
     toast.add({
       severity: 'error',
@@ -385,43 +370,42 @@ const loadProperties = async () => {
   }
 }
 
-const viewProperty = (property) => {
-  if (property.type === 'immeuble') {
-    router.push(`/buildings/${property.id}`)
-  } else {
-    router.push(`/properties/${property.id}`)
-  }
-}
-
-const editProperty = (property) => {
-  editingProperty.value = property
-  Object.assign(form, property)
-  showDialog.value = true
-}
-
 const resetForm = () => {
-  editingProperty.value = null
-  Object.assign(form, {
+  Object.assign(propertyForm, {
     name: '',
     type: '',
-    buildingId: null,
+    status: 'disponible',
     address: '',
     city: '',
     postalCode: '',
     surface: null,
     rooms: null,
     currentRent: null,
-    description: '',
-    fiscalNumber: '',
-    cadastralReference: ''
+    description: ''
   })
 }
 
+const closeDialog = () => {
+  showDialog.value = false
+  editingProperty.value = null
+  resetForm()
+}
+
 const saveProperty = async () => {
+  if (!propertyForm.name || !propertyForm.type || !propertyForm.address || !propertyForm.city || !propertyForm.postalCode) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Attention',
+      detail: 'Veuillez remplir tous les champs obligatoires',
+      life: 3000
+    })
+    return
+  }
+
   saving.value = true
   try {
     if (editingProperty.value) {
-      await api.put(`/api/properties/${editingProperty.value.id}`, form)
+      await api.put(`/api/properties/${editingProperty.value.id}`, propertyForm)
       toast.add({
         severity: 'success',
         summary: 'Succès',
@@ -429,9 +413,7 @@ const saveProperty = async () => {
         life: 3000
       })
     } else {
-      // Créer une copie sans l'id pour la création
-      const { id, ...propertyData } = form
-      await api.post('/api/properties', propertyData)
+      await api.post('/api/properties', propertyForm)
       toast.add({
         severity: 'success',
         summary: 'Succès',
@@ -439,14 +421,13 @@ const saveProperty = async () => {
         life: 3000
       })
     }
-    showDialog.value = false
-    resetForm()
+    closeDialog()
     loadProperties()
   } catch (error) {
     toast.add({
       severity: 'error',
       summary: 'Erreur',
-      detail: 'Impossible d\'enregistrer le bien',
+      detail: error.response?.data?.error?.message || 'Impossible de sauvegarder le bien',
       life: 3000
     })
   } finally {
@@ -454,31 +435,58 @@ const saveProperty = async () => {
   }
 }
 
-const deleteProperty = (property) => {
-  confirm.require({
-    message: 'Voulez-vous vraiment supprimer ce bien ?',
-    header: 'Confirmation',
-    icon: 'pi pi-exclamation-triangle',
-    accept: async () => {
-      try {
-        await api.delete(`/api/properties/${property.id}`)
-        toast.add({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Bien supprimé avec succès',
-          life: 3000
-        })
-        loadProperties()
-      } catch (error) {
-        toast.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Impossible de supprimer le bien',
-          life: 3000
-        })
-      }
-    }
-  })
+const viewProperty = (property) => {
+  router.push(`/properties/${property.id}`)
+}
+
+const editProperty = (property) => {
+  editingProperty.value = property
+  Object.assign(propertyForm, property)
+  showDialog.value = true
+}
+
+const deleteProperty = async (property) => {
+  if (!confirm(`Voulez-vous vraiment supprimer ${property.name} ?`)) {
+    return
+  }
+
+  try {
+    await api.delete(`/api/properties/${property.id}`)
+    toast.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: 'Bien supprimé avec succès',
+      life: 3000
+    })
+    loadProperties()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de supprimer le bien',
+      life: 3000
+    })
+  }
+}
+
+const getStatusBadgeClass = (status) => {
+  const classMap = {
+    disponible: 'badge-success',
+    loue: 'badge-info',
+    en_travaux: 'badge-warning',
+    vendu: 'badge-error'
+  }
+  return classMap[status] || 'badge-ghost'
+}
+
+const getStatusLabel = (status) => {
+  const labelMap = {
+    disponible: 'Disponible',
+    loue: 'Loué',
+    en_travaux: 'En travaux',
+    vendu: 'Vendu'
+  }
+  return labelMap[status] || status
 }
 
 const formatPropertyType = (type) => {
@@ -488,40 +496,10 @@ const formatPropertyType = (type) => {
     immeuble: 'Immeuble',
     terrain: 'Terrain',
     garage: 'Garage',
-    fond_commerce: 'Commerce',
+    commercial: 'Commercial',
     meuble: 'Meublé'
   }
   return typeMap[type] || type
-}
-
-const formatStatus = (status) => {
-  const statusMap = {
-    disponible: 'Disponible',
-    loue: 'Loué',
-    en_travaux: 'En travaux',
-    vendu: 'Vendu'
-  }
-  return statusMap[status] || status
-}
-
-const getStatusSeverity = (status) => {
-  const severityMap = {
-    disponible: 'success',
-    loue: 'info',
-    en_travaux: 'warning',
-    vendu: 'danger'
-  }
-  return severityMap[status] || 'info'
-}
-
-const getStatusIcon = (status) => {
-  const iconMap = {
-    disponible: 'pi-check-circle',
-    loue: 'pi-users',
-    en_travaux: 'pi-wrench',
-    vendu: 'pi-times-circle'
-  }
-  return iconMap[status] || 'pi-circle'
 }
 
 const formatCurrency = (value) => {
@@ -535,309 +513,3 @@ onMounted(() => {
   loadProperties()
 })
 </script>
-
-<style scoped>
-.properties-view {
-  padding: 1.5rem;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-/* En-tête moderne */
-.page-header-modern {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  color: white;
-}
-
-.page-title-modern {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.subtitle-modern {
-  font-size: 1.1rem;
-  opacity: 0.95;
-  margin: 0;
-}
-
-/* Statistiques */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.75rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-  color: white;
-}
-
-.stat-primary .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-available .stat-icon {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
-
-.stat-rented .stat-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-}
-
-.stat-revenue .stat-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-.stat-value-small {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-/* Carte moderne */
-.modern-card {
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.modern-card :deep(.p-card-content) {
-  padding: 1.5rem;
-}
-
-/* Filtres modernes */
-.filters-modern {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.search-input {
-  flex: 1;
-  min-width: 250px;
-}
-
-.filter-dropdown {
-  min-width: 200px;
-}
-
-.dropdown-value {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Table moderne */
-.modern-table :deep(.p-datatable-thead > tr > th) {
-  background: var(--primary-50);
-  color: var(--primary-color);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.875rem;
-  padding: 1.25rem 1rem;
-  border: none;
-}
-
-.modern-table :deep(.p-datatable-tbody > tr) {
-  transition: all 0.2s;
-}
-
-.modern-table :deep(.p-datatable-tbody > tr:hover) {
-  background: var(--primary-50) !important;
-  transform: scale(1.005);
-}
-
-.modern-table :deep(.p-datatable-tbody > tr > td) {
-  padding: 1.25rem 1rem;
-  font-size: 1rem;
-  border-color: var(--surface-200);
-}
-
-.name-cell,
-.address-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.name-cell i,
-.address-cell i {
-  color: var(--primary-color);
-  font-size: 1.1rem;
-}
-
-.currency-cell {
-  font-weight: 700;
-  color: var(--green-600);
-  font-size: 1.1rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Formulaire */
-.property-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem 0;
-}
-
-.p-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.p-field-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.p-field label {
-  font-weight: 700;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.p-field label i {
-  color: var(--primary-color);
-  font-size: 1rem;
-}
-
-.modern-dialog :deep(.p-dialog-header) {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
-  color: white;
-  padding: 1.5rem 2rem;
-  border-radius: 12px 12px 0 0;
-}
-
-.modern-dialog :deep(.p-dialog-title) {
-  font-weight: 700;
-  font-size: 1.5rem;
-}
-
-.modern-dialog :deep(.p-dialog-content) {
-  padding: 2rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-/* Mode sombre */
-.dark-mode .stat-card {
-  background: #1e293b;
-  border-color: #334155;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.dark-mode .stat-label {
-  color: #94a3b8;
-}
-
-.dark-mode .stat-value,
-.dark-mode .stat-value-small {
-  color: #f1f5f9;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .properties-view {
-    padding: 1rem;
-  }
-
-  .page-header-modern {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .page-title-modern {
-    font-size: 1.75rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-modern {
-    flex-direction: column;
-  }
-
-  .search-input {
-    min-width: 100%;
-  }
-
-  .filter-dropdown {
-    width: 100%;
-  }
-
-  .p-field-group {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

@@ -1,280 +1,200 @@
 <template>
-  <div class="modern-view">
-    <!-- En-tête moderne -->
-    <div class="page-header-modern">
+  <div class="p-8">
+    <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="page-title-modern">Gestion des locataires</h1>
-        <p class="subtitle-modern">Suivi et gestion de vos locataires</p>
+        <h1 class="text-3xl font-bold">Locataires</h1>
+        <p class="text-base-content/70 mt-1">Gestion de vos locataires</p>
       </div>
-      <Button
-        label="Nouveau locataire"
-        icon="pi pi-plus"
+      <button
         @click="showDialog = true"
-        class="p-button-rounded p-button-lg p-button-success"
-      />
+        class="btn btn-primary gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nouveau locataire
+      </button>
     </div>
 
-    <!-- Cartes de statistiques -->
-    <div class="stats-grid">
-      <div class="stat-card stat-primary">
-        <div class="stat-icon">
-          <i class="pi pi-users"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Total locataires</div>
-          <div class="stat-value">{{ tenants.length }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-success">
-        <div class="stat-icon">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Baux actifs</div>
-          <div class="stat-value">{{ activeLeaseCount }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-info">
-        <div class="stat-icon">
-          <i class="pi pi-home"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Locataires avec bail</div>
-          <div class="stat-value">{{ tenantsWithLeaseCount }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-warning">
-        <div class="stat-icon">
-          <i class="pi pi-user-plus"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Sans bail actif</div>
-          <div class="stat-value">{{ tenantsWithoutLeaseCount }}</div>
-        </div>
-      </div>
-    </div>
-
-    <Card class="modern-card">
-      <template #content>
-        <div class="filters-modern">
-          <span class="p-input-icon-left search-input">
-            <i class="pi pi-search" />
-            <InputText
-              v-model="search"
-              placeholder="Rechercher un locataire..."
+    <!-- Filtres -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Recherche</span>
+            </label>
+            <input
+              v-model="filters.search"
+              type="text"
+              placeholder="Nom du locataire..."
+              class="input input-bordered w-full"
               @input="loadTenants"
-              class="w-full"
             />
-          </span>
-        </div>
+          </div>
 
-        <DataTable
-          :value="tenants"
-          :loading="loading"
-          :paginator="true"
-          :rows="10"
-          responsiveLayout="scroll"
-          class="modern-table"
-          stripedRows
-        >
-          <Column field="firstName" header="Prénom" sortable>
-            <template #body="{ data }">
-              <div class="name-cell">
-                <i class="pi pi-user"></i>
-                <span>{{ data.firstName }}</span>
-              </div>
-            </template>
-          </Column>
-          <Column field="lastName" header="Nom" sortable>
-            <template #body="{ data }">
-              <span class="fw-semibold">{{ data.lastName }}</span>
-            </template>
-          </Column>
-          <Column field="email" header="Email">
-            <template #body="{ data }">
-              <div v-if="data.email" class="name-cell">
-                <i class="pi pi-envelope"></i>
-                <span>{{ data.email }}</span>
-              </div>
-              <span v-else class="text-muted">-</span>
-            </template>
-          </Column>
-          <Column field="phone" header="Téléphone">
-            <template #body="{ data }">
-              <div v-if="data.phone" class="name-cell">
-                <i class="pi pi-phone"></i>
-                <span>{{ data.phone }}</span>
-              </div>
-              <span v-else class="text-muted">-</span>
-            </template>
-          </Column>
-          <Column field="city" header="Ville">
-            <template #body="{ data }">
-              <div v-if="data.city" class="address-cell">
-                <i class="pi pi-map-marker"></i>
-                <span>{{ data.city }}</span>
-              </div>
-              <span v-else class="text-muted">-</span>
-            </template>
-          </Column>
-          <Column header="Baux actifs">
-            <template #body="{ data }">
-              <Badge
-                :value="data.Leases?.filter(l => l.status === 'actif').length || 0"
-                :severity="data.Leases?.filter(l => l.status === 'actif').length ? 'success' : 'secondary'"
-              />
-            </template>
-          </Column>
-          <Column header="Actions">
-            <template #body="{ data }">
-              <div class="action-buttons">
-                <Button
-                  icon="pi pi-eye"
-                  class="p-button-rounded p-button-text p-button-info"
-                  @click="viewTenant(data)"
-                  v-tooltip.top="'Voir détails'"
-                />
-                <Button
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-text p-button-warning"
-                  @click="editTenant(data)"
-                  v-tooltip.top="'Modifier'"
-                />
-              </div>
-            </template>
-          </Column>
-        </DataTable>
-      </template>
-    </Card>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut du bail</span>
+            </label>
+            <select v-model="filters.leaseStatus" class="select select-bordered w-full" @change="loadTenants">
+              <option value="">Tous les statuts</option>
+              <option value="active">Bail actif</option>
+              <option value="inactive">Sans bail</option>
+            </select>
+          </div>
 
-    <Dialog
-      v-model:visible="showDialog"
-      :header="editingTenant ? 'Modifier le locataire' : 'Nouveau locataire'"
-      :modal="true"
-      :style="{ width: '600px' }"
-      class="modern-dialog"
-    >
-      <div class="modern-form">
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-user"></i> Prénom *</label>
-            <InputText v-model="form.firstName" required class="w-full" />
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Bien</span>
+            </label>
+            <select v-model="filters.property" class="select select-bordered w-full" @change="loadTenants">
+              <option value="">Tous les biens</option>
+              <option v-for="property in properties" :key="property.id" :value="property.id">
+                {{ property.name }}
+              </option>
+            </select>
           </div>
-          <div class="p-field">
-            <label><i class="pi pi-user"></i> Nom *</label>
-            <InputText v-model="form.lastName" required class="w-full" />
-          </div>
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-envelope"></i> Email</label>
-          <InputText v-model="form.email" type="email" class="w-full" />
-        </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-phone"></i> Téléphone</label>
-            <InputText v-model="form.phone" class="w-full" />
-          </div>
-          <div class="p-field">
-            <label><i class="pi pi-mobile"></i> Mobile</label>
-            <InputText v-model="form.mobile" class="w-full" />
-          </div>
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-map-marker"></i> Adresse</label>
-          <InputText v-model="form.address" class="w-full" />
-        </div>
-        <div class="p-field-group">
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Ville</label>
-            <InputText v-model="form.city" class="w-full" />
-          </div>
-          <div class="p-field">
-            <label><i class="pi pi-map"></i> Code postal</label>
-            <InputText v-model="form.postalCode" class="w-full" />
-          </div>
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-wallet"></i> IBAN</label>
-          <InputText v-model="form.iban" class="w-full" />
-        </div>
-        <div class="p-field">
-          <label><i class="pi pi-file-edit"></i> Notes</label>
-          <Textarea v-model="form.notes" rows="3" class="w-full" />
         </div>
       </div>
-      <template #footer>
-        <Button label="Annuler" @click="showDialog = false" class="p-button-text" />
-        <Button label="Enregistrer" @click="saveTenant" :loading="saving" />
-      </template>
-    </Dialog>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+
+    <!-- Table -->
+    <div v-else-if="tenants.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Locataire</th>
+              <th>Contact</th>
+              <th>Bien</th>
+              <th class="text-center">Statut Bail</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="tenant in tenants" :key="tenant.id" class="hover">
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="avatar placeholder">
+                    <div class="bg-success text-success-content rounded-lg w-10">
+                      <span class="text-sm font-bold">
+                        {{ tenant.firstName.charAt(0).toUpperCase() }}{{ tenant.lastName.charAt(0).toUpperCase() }}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-medium">{{ tenant.firstName }} {{ tenant.lastName }}</div>
+                    <div class="text-sm opacity-60">{{ tenant.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ tenant.phone }}</td>
+              <td>
+                <span v-if="tenant.currentProperty">
+                  {{ tenant.currentProperty }}
+                </span>
+                <span v-else class="italic opacity-60">
+                  Aucun bien
+                </span>
+              </td>
+              <td class="text-center">
+                <div v-if="tenant.hasActiveLease" class="badge badge-success badge-sm">
+                  Bail actif
+                </div>
+                <div v-else class="badge badge-ghost badge-sm">
+                  Sans bail
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    @click="viewTenant(tenant)"
+                    class="btn btn-ghost btn-xs"
+                    title="Voir détails"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="editTenant(tenant)"
+                    class="btn btn-ghost btn-xs"
+                    title="Modifier"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteTenant(tenant)"
+                    class="btn btn-ghost btn-xs text-error"
+                    title="Supprimer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="card bg-base-100 shadow-xl">
+      <div class="card-body items-center text-center py-12">
+        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">Aucun locataire trouvé</h3>
+        <p class="text-base-content/60">{{ filters.search ? 'Essayez de modifier les filtres' : 'Ajoutez votre premier locataire' }}</p>
+      </div>
+    </div>
+
+    <!-- Dialog -->
+    <!-- TODO: Ajouter le dialog pour créer/modifier un locataire -->
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
-import Textarea from 'primevue/textarea'
-import Dialog from 'primevue/dialog'
-import Badge from 'primevue/badge'
 
 const router = useRouter()
 const toast = useToast()
 
 const tenants = ref([])
+const properties = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
-const editingTenant = ref(null)
-const saving = ref(false)
-const search = ref('')
 
-// Computed properties for statistics
-const activeLeaseCount = computed(() => {
-  return tenants.value.reduce((count, tenant) => {
-    return count + (tenant.Leases?.filter(l => l.status === 'actif').length || 0)
-  }, 0)
-})
-
-const tenantsWithLeaseCount = computed(() => {
-  return tenants.value.filter(tenant =>
-    tenant.Leases && tenant.Leases.some(l => l.status === 'actif')
-  ).length
-})
-
-const tenantsWithoutLeaseCount = computed(() => {
-  return tenants.value.filter(tenant =>
-    !tenant.Leases || !tenant.Leases.some(l => l.status === 'actif')
-  ).length
-})
-
-const form = reactive({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  mobile: '',
-  address: '',
-  city: '',
-  postalCode: '',
-  iban: '',
-  notes: ''
+const filters = reactive({
+  search: '',
+  leaseStatus: '',
+  property: ''
 })
 
 const loadTenants = async () => {
   loading.value = true
   try {
-    const params = search.value ? { search: search.value } : {}
+    const params = {}
+    if (filters.search) params.search = filters.search
+    if (filters.leaseStatus) params.leaseStatus = filters.leaseStatus
+    if (filters.property) params.property = filters.property
+
     const response = await api.get('/api/tenants', { params })
-    tenants.value = response.data.data
+    tenants.value = response.data.data || []
   } catch (error) {
     toast.add({
       severity: 'error',
@@ -287,56 +207,49 @@ const loadTenants = async () => {
   }
 }
 
+const loadProperties = async () => {
+  try {
+    const response = await api.get('/api/properties')
+    properties.value = response.data.data || []
+  } catch (error) {
+    console.error('Erreur lors du chargement des biens:', error)
+  }
+}
+
 const viewTenant = (tenant) => {
   router.push(`/tenants/${tenant.id}`)
 }
 
 const editTenant = (tenant) => {
-  editingTenant.value = tenant
-  Object.assign(form, tenant)
+  // TODO: Ouvrir le dialog d'édition
   showDialog.value = true
 }
 
-const saveTenant = async () => {
-  saving.value = true
-  try {
-    if (editingTenant.value) {
-      await api.put(`/api/tenants/${editingTenant.value.id}`, form)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Locataire modifié avec succès',
-        life: 3000
+const deleteTenant = (tenant) => {
+  if (confirm(`Voulez-vous vraiment supprimer ${tenant.firstName} ${tenant.lastName} ?`)) {
+    api.delete(`/api/tenants/${tenant.id}`)
+      .then(() => {
+        toast.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: 'Locataire supprimé avec succès',
+          life: 3000
+        })
+        loadTenants()
       })
-    } else {
-      const { id, ...tenantData } = form
-      await api.post('/api/tenants', tenantData)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Locataire créé avec succès',
-        life: 3000
+      .catch(() => {
+        toast.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de supprimer le locataire',
+          life: 3000
+        })
       })
-    }
-    showDialog.value = false
-    loadTenants()
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible d\'enregistrer le locataire',
-      life: 3000
-    })
-  } finally {
-    saving.value = false
   }
 }
 
 onMounted(() => {
   loadTenants()
+  loadProperties()
 })
 </script>
-
-<style scoped>
-/* Styles spécifiques uniquement - les styles globaux sont dans modern-views.css */
-</style>

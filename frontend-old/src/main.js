@@ -12,12 +12,11 @@ import router from './router'
 // Le thème est chargé dynamiquement depuis index.html
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
+import './assets/main.css'
 
-// Tailwind CSS (style bank-manager)
-import './assets/style.css'
-
-// Fix pour les dialogs PrimeVue avec DaisyUI (DOIT être chargé en dernier)
-import './assets/dialog-fix.css'
+// Styles modernes pour toutes les vues
+import './assets/styles/modern-views.css'
+import './assets/styles/modern-tables.css'
 
 const app = createApp(App)
 
