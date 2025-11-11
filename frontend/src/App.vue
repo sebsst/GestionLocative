@@ -1,8 +1,5 @@
 <template>
   <div class="app-container">
-    <Toast />
-    <ConfirmDialog />
-
     <template v-if="!isLoginPage">
       <AppHeader v-if="isAuthenticated" />
       <div class="layout-container">
@@ -24,8 +21,6 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import Toast from 'primevue/toast'
-import ConfirmDialog from 'primevue/confirmdialog'
 
 const route = useRoute()
 const authStore = useAuthStore()
