@@ -168,11 +168,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
 
 const router = useRouter()
-const toast = useToast()
 
 const tenants = ref([])
 const properties = ref([])
@@ -196,12 +194,8 @@ const loadTenants = async () => {
     const response = await api.get('/api/tenants', { params })
     tenants.value = response.data.data || []
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les locataires',
-      life: 3000
-    })
+    alert('Erreur: Impossible de charger les locataires')
+    console.error('Error loading tenants:', error)
   } finally {
     loading.value = false
   }
@@ -229,21 +223,12 @@ const deleteTenant = (tenant) => {
   if (confirm(`Voulez-vous vraiment supprimer ${tenant.firstName} ${tenant.lastName} ?`)) {
     api.delete(`/api/tenants/${tenant.id}`)
       .then(() => {
-        toast.add({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Locataire supprimé avec succès',
-          life: 3000
-        })
+        alert('Succès: Locataire supprimé avec succès')
         loadTenants()
       })
-      .catch(() => {
-        toast.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Impossible de supprimer le locataire',
-          life: 3000
-        })
+      .catch((error) => {
+        alert('Erreur: Impossible de supprimer le locataire')
+        console.error('Error deleting tenant:', error)
       })
   }
 }

@@ -204,11 +204,11 @@
     </div>
 
     <!-- Dialog Create/Edit Work -->
-    <Dialog
-      v-model:visible="showDialog"
-      :header="editingWork ? 'Modifier les travaux' : 'Nouveaux travaux'"
-      :modal="true"
-      :style="{ width: '600px' }"
+    <Modal
+      v-model="showDialog"
+      :title="editingWork ? 'Modifier les travaux' : 'Nouveaux travaux'"
+      size="lg"
+      :hide-footer="true"
     >
       <div class="space-y-4">
         <div class="form-control">
@@ -286,14 +286,15 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Montant estimé</span>
+              <span class="label-text">Montant estimé (€)</span>
             </label>
-            <InputNumber
-              v-model="workForm.estimatedAmount"
-              mode="currency"
-              currency="EUR"
-              locale="fr-FR"
-              class="w-full"
+            <input
+              v-model.number="workForm.estimatedAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="1000.00"
+              class="input input-bordered w-full"
             />
           </div>
 
@@ -301,10 +302,10 @@
             <label class="label">
               <span class="label-text">Date prévue</span>
             </label>
-            <Calendar
+            <input
               v-model="workForm.estimatedDate"
-              dateFormat="dd/mm/yy"
-              class="w-full"
+              type="date"
+              class="input input-bordered w-full"
             />
           </div>
         </div>
@@ -330,14 +331,14 @@
           </button>
         </div>
       </template>
-    </Dialog>
+    </Modal>
 
     <!-- Dialog Create Artisan -->
-    <Dialog
-      v-model:visible="showArtisanDialog"
-      header="Créer un nouvel artisan"
-      :modal="true"
-      :style="{ width: '600px' }"
+    <Modal
+      v-model="showArtisanDialog"
+      title="Créer un nouvel artisan"
+      size="lg"
+      :hide-footer="true"
     >
       <div class="space-y-4">
         <div class="form-control">
@@ -474,19 +475,14 @@
           </button>
         </div>
       </template>
-    </Dialog>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
-import Dialog from 'primevue/dialog'
-import InputNumber from 'primevue/inputnumber'
-import Calendar from 'primevue/calendar'
-
-const toast = useToast()
+import Modal from '@/components/ui/Modal.vue'
 
 const works = ref([])
 const properties = ref([])
@@ -560,12 +556,8 @@ const loadWorks = async () => {
     const response = await api.get('/api/works', { params })
     works.value = response.data.data || []
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les travaux',
-      life: 3000
-    })
+    alert('Erreur: Impossible de charger les travaux')
+    console.error('Error loading works:', error)
   } finally {
     loading.value = false
   }
@@ -626,12 +618,7 @@ const closeDialog = () => {
 
 const saveWork = async () => {
   if (!workForm.propertyId || !workForm.type || !workForm.nature) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Attention',
-      detail: 'Veuillez remplir tous les champs obligatoires',
-      life: 3000
-    })
+    alert('Attention: Veuillez remplir tous les champs obligatoires')
     return
   }
 
@@ -639,30 +626,16 @@ const saveWork = async () => {
   try {
     if (editingWork.value) {
       await api.put(`/api/works/${editingWork.value.id}`, workForm)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Travaux modifiés avec succès',
-        life: 3000
-      })
+      alert('Succès: Travaux modifiés avec succès')
     } else {
       await api.post('/api/works', workForm)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Travaux créés avec succès',
-        life: 3000
-      })
+      alert('Succès: Travaux créés avec succès')
     }
     closeDialog()
     loadWorks()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: error.response?.data?.error?.message || 'Impossible de sauvegarder les travaux',
-      life: 3000
-    })
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de sauvegarder les travaux'}`)
+    console.error('Error saving work:', error)
   } finally {
     saving.value = false
   }
@@ -691,43 +664,24 @@ const deleteWork = async (work) => {
 
   try {
     await api.delete(`/api/works/${work.id}`)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Travaux supprimés avec succès',
-      life: 3000
-    })
+    alert('Succès: Travaux supprimés avec succès')
     loadWorks()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de supprimer les travaux',
-      life: 3000
-    })
+    alert('Erreur: Impossible de supprimer les travaux')
+    console.error('Error deleting work:', error)
   }
 }
 
 const createArtisan = async () => {
   if (!artisanForm.name) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Attention',
-      detail: 'Le nom de l\'artisan est obligatoire',
-      life: 3000
-    })
+    alert('Attention: Le nom de l\'artisan est obligatoire')
     return
   }
 
   savingArtisan.value = true
   try {
     const response = await api.post('/api/works/artisans', artisanForm)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Artisan créé avec succès',
-      life: 3000
-    })
+    alert('Succès: Artisan créé avec succès')
 
     showArtisanDialog.value = false
     resetArtisanForm()
@@ -736,12 +690,8 @@ const createArtisan = async () => {
     // Sélectionner automatiquement le nouvel artisan
     workForm.artisanId = response.data.data.id
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: error.response?.data?.error?.message || 'Impossible de créer l\'artisan',
-      life: 3000
-    })
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de créer l\'artisan'}`)
+    console.error('Error creating artisan:', error)
   } finally {
     savingArtisan.value = false
   }

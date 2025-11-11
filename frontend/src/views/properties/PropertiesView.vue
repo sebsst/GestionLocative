@@ -159,11 +159,11 @@
     </div>
 
     <!-- Dialog Create/Edit -->
-    <Dialog
-      v-model:visible="showDialog"
-      :header="editingProperty ? 'Modifier le bien' : 'Nouveau bien'"
-      :modal="true"
-      :style="{ width: '700px' }"
+    <Modal
+      v-model="showDialog"
+      :title="editingProperty ? 'Modifier le bien' : 'Nouveau bien'"
+      size="lg"
+      :hide-footer="true"
     >
       <div class="space-y-4">
         <div class="form-control">
@@ -251,14 +251,26 @@
             <label class="label">
               <span class="label-text">Surface (m²)</span>
             </label>
-            <InputNumber v-model="propertyForm.surface" :min="0" class="w-full" />
+            <input
+              v-model.number="propertyForm.surface"
+              type="number"
+              min="0"
+              placeholder="50"
+              class="input input-bordered w-full"
+            />
           </div>
 
           <div class="form-control">
             <label class="label">
               <span class="label-text">Nombre de pièces</span>
             </label>
-            <InputNumber v-model="propertyForm.rooms" :min="0" class="w-full" />
+            <input
+              v-model.number="propertyForm.rooms"
+              type="number"
+              min="0"
+              placeholder="3"
+              class="input input-bordered w-full"
+            />
           </div>
         </div>
 
@@ -266,7 +278,14 @@
           <label class="label">
             <span class="label-text">Loyer mensuel (€)</span>
           </label>
-          <InputNumber v-model="propertyForm.currentRent" mode="currency" currency="EUR" locale="fr-FR" class="w-full" />
+          <input
+            v-model.number="propertyForm.currentRent"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="800"
+            class="input input-bordered w-full"
+          />
         </div>
 
         <div class="form-control">
@@ -291,20 +310,17 @@
           </button>
         </div>
       </template>
-    </Dialog>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
-import Dialog from 'primevue/dialog'
-import InputNumber from 'primevue/inputnumber'
+import Modal from '@/components/ui/Modal.vue'
 
 const router = useRouter()
-const toast = useToast()
 
 const properties = ref([])
 const loading = ref(false)
@@ -359,12 +375,8 @@ const loadProperties = async () => {
     const response = await api.get('/api/properties', { params })
     properties.value = response.data.data || []
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les biens',
-      life: 3000
-    })
+    alert('Erreur: Impossible de charger les biens')
+    console.error('Error loading properties:', error)
   } finally {
     loading.value = false
   }
@@ -393,12 +405,7 @@ const closeDialog = () => {
 
 const saveProperty = async () => {
   if (!propertyForm.name || !propertyForm.type || !propertyForm.address || !propertyForm.city || !propertyForm.postalCode) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Attention',
-      detail: 'Veuillez remplir tous les champs obligatoires',
-      life: 3000
-    })
+    alert('Attention: Veuillez remplir tous les champs obligatoires')
     return
   }
 
@@ -406,30 +413,16 @@ const saveProperty = async () => {
   try {
     if (editingProperty.value) {
       await api.put(`/api/properties/${editingProperty.value.id}`, propertyForm)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Bien modifié avec succès',
-        life: 3000
-      })
+      alert('Succès: Bien modifié avec succès')
     } else {
       await api.post('/api/properties', propertyForm)
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Bien créé avec succès',
-        life: 3000
-      })
+      alert('Succès: Bien créé avec succès')
     }
     closeDialog()
     loadProperties()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: error.response?.data?.error?.message || 'Impossible de sauvegarder le bien',
-      life: 3000
-    })
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de sauvegarder le bien'}`)
+    console.error('Error saving property:', error)
   } finally {
     saving.value = false
   }
@@ -452,20 +445,11 @@ const deleteProperty = async (property) => {
 
   try {
     await api.delete(`/api/properties/${property.id}`)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Bien supprimé avec succès',
-      life: 3000
-    })
+    alert('Succès: Bien supprimé avec succès')
     loadProperties()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de supprimer le bien',
-      life: 3000
-    })
+    alert('Erreur: Impossible de supprimer le bien')
+    console.error('Error deleting property:', error)
   }
 }
 

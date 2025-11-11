@@ -206,11 +206,11 @@
     </div>
 
     <!-- Dialog Generate Rents -->
-    <Dialog
-      v-model:visible="showGenerateDialog"
-      header="Générer les loyers"
-      :modal="true"
-      :style="{ width: '400px' }"
+    <Modal
+      v-model="showGenerateDialog"
+      title="Générer les loyers"
+      size="sm"
+      :hide-footer="true"
     >
       <div class="space-y-4">
         <div class="form-control">
@@ -240,36 +240,37 @@
           </button>
         </div>
       </template>
-    </Dialog>
+    </Modal>
 
     <!-- Dialog Payment -->
-    <Dialog
-      v-model:visible="showPaymentDialog"
-      header="Enregistrer un paiement"
-      :modal="true"
-      :style="{ width: '400px' }"
+    <Modal
+      v-model="showPaymentDialog"
+      title="Enregistrer un paiement"
+      size="sm"
+      :hide-footer="true"
     >
       <div class="space-y-4">
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Montant payé</span>
+            <span class="label-text">Montant payé (€)</span>
           </label>
-          <InputNumber
-            v-model="paymentForm.paidAmount"
-            mode="currency"
-            currency="EUR"
-            locale="fr-FR"
-            class="w-full"
+          <input
+            v-model.number="paymentForm.paidAmount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="800.00"
+            class="input input-bordered w-full"
           />
         </div>
         <div class="form-control">
           <label class="label">
             <span class="label-text">Date de paiement</span>
           </label>
-          <Calendar
+          <input
             v-model="paymentForm.paymentDate"
-            dateFormat="dd/mm/yy"
-            class="w-full"
+            type="date"
+            class="input input-bordered w-full"
           />
         </div>
         <div class="form-control">
@@ -291,19 +292,14 @@
           </button>
         </div>
       </template>
-    </Dialog>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
-import Dialog from 'primevue/dialog'
-import InputNumber from 'primevue/inputnumber'
-import Calendar from 'primevue/calendar'
-
-const toast = useToast()
+import Modal from '@/components/ui/Modal.vue'
 
 const rents = ref([])
 const loading = ref(false)
@@ -326,7 +322,7 @@ const generateForm = reactive({
 
 const paymentForm = reactive({
   paidAmount: 0,
-  paymentDate: new Date(),
+  paymentDate: new Date().toISOString().split('T')[0],
   paymentMethod: 'virement'
 })
 
@@ -396,12 +392,8 @@ const loadRents = async () => {
     const response = await api.get('/api/rents', { params })
     rents.value = response.data.data || []
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les loyers',
-      life: 3000
-    })
+    alert('Erreur: Impossible de charger les loyers')
+    console.error('Error loading rents:', error)
   } finally {
     loading.value = false
   }
@@ -411,21 +403,12 @@ const generateRents = async () => {
   generating.value = true
   try {
     await api.post('/api/rents/generate', generateForm)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Loyers générés avec succès',
-      life: 3000
-    })
+    alert('Succès: Loyers générés avec succès')
     showGenerateDialog.value = false
     loadRents()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: error.response?.data?.error?.message || 'Impossible de générer les loyers',
-      life: 3000
-    })
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de générer les loyers'}`)
+    console.error('Error generating rents:', error)
   } finally {
     generating.value = false
   }
@@ -434,7 +417,7 @@ const generateRents = async () => {
 const markAsPaid = (rent) => {
   selectedRent.value = rent
   paymentForm.paidAmount = rent.expectedAmount
-  paymentForm.paymentDate = new Date()
+  paymentForm.paymentDate = new Date().toISOString().split('T')[0]
   showPaymentDialog.value = true
 }
 
@@ -442,21 +425,12 @@ const savePayment = async () => {
   saving.value = true
   try {
     await api.put(`/api/rents/${selectedRent.value.id}/pay`, paymentForm)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Paiement enregistré avec succès',
-      life: 3000
-    })
+    alert('Succès: Paiement enregistré avec succès')
     showPaymentDialog.value = false
     loadRents()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible d\'enregistrer le paiement',
-      life: 3000
-    })
+    alert('Erreur: Impossible d\'enregistrer le paiement')
+    console.error('Error saving payment:', error)
   } finally {
     saving.value = false
   }
@@ -465,19 +439,10 @@ const savePayment = async () => {
 const sendReminder = async (rent) => {
   try {
     await api.post(`/api/documents/rent-reminder/${rent.id}/send`)
-    toast.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Rappel envoyé avec succès',
-      life: 3000
-    })
+    alert('Succès: Rappel envoyé avec succès')
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible d\'envoyer le rappel',
-      life: 3000
-    })
+    alert('Erreur: Impossible d\'envoyer le rappel')
+    console.error('Error sending reminder:', error)
   }
 }
 
@@ -494,12 +459,8 @@ const downloadReminder = async (rent) => {
     link.click()
     link.remove()
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de télécharger le rappel',
-      life: 3000
-    })
+    alert('Erreur: Impossible de télécharger le rappel')
+    console.error('Error downloading reminder:', error)
   }
 }
 
