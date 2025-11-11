@@ -26,30 +26,31 @@ const router = createRouter({
       component: () => import('@/views/properties/PropertiesView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/properties-v2',
-      name: 'properties-v2',
-      component: () => import('@/views/properties/PropertiesViewV2.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/properties-compare',
-      name: 'properties-compare',
-      component: () => import('@/views/properties/PropertiesCompareView.vue'),
-      meta: { requiresAuth: true }
-    },
+    // Routes désactivées temporairement (vues avec PrimeVue)
+    // {
+    //   path: '/properties-v2',
+    //   name: 'properties-v2',
+    //   component: () => import('@/views/properties/PropertiesViewV2.vue'),
+    //   meta: { requiresAuth: true }
+    // },
+    // {
+    //   path: '/properties-compare',
+    //   name: 'properties-compare',
+    //   component: () => import('@/views/properties/PropertiesCompareView.vue'),
+    //   meta: { requiresAuth: true }
+    // },
     {
       path: '/properties/:id',
       name: 'property-detail',
       component: () => import('@/views/properties/PropertyDetailView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/buildings/:id',
-      name: 'building-detail',
-      component: () => import('@/views/properties/BuildingDetailView.vue'),
-      meta: { requiresAuth: true }
-    },
+    // {
+    //   path: '/buildings/:id',
+    //   name: 'building-detail',
+    //   component: () => import('@/views/properties/BuildingDetailView.vue'),
+    //   meta: { requiresAuth: true }
+    // },
     {
       path: '/tenants',
       name: 'tenants',
@@ -68,30 +69,30 @@ const router = createRouter({
       component: () => import('@/views/rents/RentsView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/charges',
-      name: 'charges',
-      component: () => import('@/views/charges/ChargesView.vue'),
-      meta: { requiresAuth: true }
-    },
+    // {
+    //   path: '/charges',
+    //   name: 'charges',
+    //   component: () => import('@/views/charges/ChargesView.vue'),
+    //   meta: { requiresAuth: true }
+    // },
     {
       path: '/works',
       name: 'works',
       component: () => import('@/views/works/WorksView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/fiscal',
-      name: 'fiscal',
-      component: () => import('@/views/FiscalView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('@/views/SettingsView.vue'),
-      meta: { requiresAuth: true }
-    }
+    // {
+    //   path: '/fiscal',
+    //   name: 'fiscal',
+    //   component: () => import('@/views/FiscalView.vue'),
+    //   meta: { requiresAuth: true }
+    // },
+    // {
+    //   path: '/settings',
+    //   name: 'settings',
+    //   component: () => import('@/views/SettingsView.vue'),
+    //   meta: { requiresAuth: true }
+    // }
   ]
 })
 
