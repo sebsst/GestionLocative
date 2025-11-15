@@ -1,4 +1,4 @@
-import { Charge, ChargeDistribution, Property } from '../models/index.js';
+import { Charge, ChargeDistribution, Property, Lease, Tenant } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
@@ -71,6 +71,9 @@ export const create = async (req, res, next) => {
 
   try {
     const { distributions, ...chargeData } = req.body;
+
+    // Log pour debug
+    console.log('📝 Données reçues pour création de charge:', JSON.stringify(chargeData, null, 2));
 
     const charge = await Charge.create(chargeData, { transaction: t });
 
@@ -299,5 +302,140 @@ const calculateDistribution = (charge, apartments) => {
 
     default:
       throw new AppError('Méthode de distribution non valide', 400);
+  }
+};
+
+// New distribution management functions
+export const saveDistributions = async (req, res, next) => {
+  const t = await sequelize.transaction();
+
+  try {
+    const charge = await Charge.findByPk(req.params.id);
+
+    if (!charge) {
+      throw new AppError('Charge non trouvée', 404);
+    }
+
+    const { method, distributions } = req.body;
+
+    // Update charge distributionMethod
+    if (method) {
+      await charge.update({
+        distributionMethod: method === 'par_occupant' ? 'occupants'
+          : method === 'par_appartement' ? 'appartement'
+          : method === 'par_jours' ? 'personnalise'
+          : null
+      }, { transaction: t });
+    }
+
+    // Delete existing distributions for this charge
+    await ChargeDistribution.destroy({
+      where: { chargeId: charge.id },
+      transaction: t
+    });
+
+    // Create new distributions
+    if (distributions && distributions.length > 0) {
+      const distributionData = distributions.map(dist => ({
+        chargeId: charge.id,
+        leaseId: dist.leaseId,
+        propertyId: dist.propertyId || null,
+        allocationMethod: method,
+        amount: parseFloat(dist.amount),
+        occupantsCount: dist.occupantsCount || null,
+        daysOccupied: dist.daysOccupied || null,
+        coefficient: dist.coefficient || null
+      }));
+
+      await ChargeDistribution.bulkCreate(distributionData, { transaction: t });
+    }
+
+    await t.commit();
+
+    // Reload charge with distributions
+    const updatedCharge = await Charge.findByPk(charge.id, {
+      include: [
+        { model: Property },
+        {
+          model: ChargeDistribution,
+          as: 'distributions',
+          include: [
+            { model: Property },
+            {
+              model: Lease,
+              include: [
+                { model: Tenant },
+                { model: Property }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: updatedCharge
+    });
+  } catch (error) {
+    await t.rollback();
+    next(error);
+  }
+};
+
+export const deleteDistributions = async (req, res, next) => {
+  const t = await sequelize.transaction();
+
+  try {
+    const charge = await Charge.findByPk(req.params.id);
+
+    if (!charge) {
+      throw new AppError('Charge non trouvée', 404);
+    }
+
+    // Reset distributionMethod
+    await charge.update({
+      distributionMethod: null
+    }, { transaction: t });
+
+    await ChargeDistribution.destroy({
+      where: { chargeId: charge.id },
+      transaction: t
+    });
+
+    await t.commit();
+
+    res.json({
+      success: true,
+      message: 'Distributions supprimées avec succès'
+    });
+  } catch (error) {
+    await t.rollback();
+    next(error);
+  }
+};
+
+export const getDistributions = async (req, res, next) => {
+  try {
+    const distributions = await ChargeDistribution.findAll({
+      where: { chargeId: req.params.id },
+      include: [
+        { model: Property },
+        {
+          model: Lease,
+          include: [
+            { model: Tenant },
+            { model: Property }
+          ]
+        }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: distributions
+    });
+  } catch (error) {
+    next(error);
   }
 };

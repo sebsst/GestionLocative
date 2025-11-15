@@ -1,5 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import Toast from 'vue-toastification'
+import 'vue-toastification/dist/index.css'
 
 import App from './App.vue'
 import router from './router'
@@ -7,9 +9,27 @@ import router from './router'
 // Tailwind CSS + DaisyUI
 import './assets/main.css'
 
+// Initialiser le thème DaisyUI avant le montage de l'app
+const savedTheme = localStorage.getItem('theme') || 'light'
+document.documentElement.setAttribute('data-theme', savedTheme)
+
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(Toast, {
+  position: 'top-right',
+  timeout: 3000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: false,
+  closeButton: 'button',
+  icon: true,
+  rtl: false
+})
 
 app.mount('#app')

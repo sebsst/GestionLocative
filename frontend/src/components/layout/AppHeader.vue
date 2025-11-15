@@ -1,5 +1,5 @@
 <template>
-  <div class="app-header">
+  <div class="app-header bg-base-100 border-b border-base-300 shadow-sm">
     <div class="header-left">
       <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -66,31 +66,24 @@ const logout = () => {
 
 const toggleTheme = () => {
   isDarkMode.value = !isDarkMode.value
+  const newTheme = isDarkMode.value ? 'dark' : 'light'
 
-  const themeLink = document.getElementById('theme-link')
-  const newTheme = isDarkMode.value ? 'lara-dark-blue' : 'lara-light-blue'
-
-  if (themeLink) {
-    themeLink.href = `/themes/${newTheme}/theme.css`
-  }
+  // Appliquer le thème DaisyUI
+  document.documentElement.setAttribute('data-theme', newTheme)
 
   // Sauvegarder la préférence
   localStorage.setItem('theme', newTheme)
-
-  // Appliquer la classe au body pour les styles personnalisés
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark-mode')
-  } else {
-    document.documentElement.classList.remove('dark-mode')
-  }
 }
 
 onMounted(() => {
   // Charger la préférence de thème
   const savedTheme = localStorage.getItem('theme')
-  if (savedTheme === 'lara-dark-blue') {
+  if (savedTheme === 'dark') {
     isDarkMode.value = true
-    document.documentElement.classList.add('dark-mode')
+    document.documentElement.setAttribute('data-theme', 'dark')
+  } else {
+    isDarkMode.value = false
+    document.documentElement.setAttribute('data-theme', 'light')
   }
 })
 </script>
@@ -98,28 +91,31 @@ onMounted(() => {
 <style scoped>
 .app-header {
   height: 60px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: oklch(var(--b1));
+  color: oklch(var(--bc));
+  border-bottom: 1px solid oklch(var(--bc) / 0.1);
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
 }
 
-.header-left .pi {
-  color: #3b82f6;
+.header-left svg {
+  color: oklch(var(--p));
+  width: 2rem;
+  height: 2rem;
 }
 
 .header-left h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: oklch(var(--bc));
 }
 
 .header-right {

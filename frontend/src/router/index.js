@@ -64,35 +64,53 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/leases',
+      name: 'leases',
+      component: () => import('@/views/leases/LeaseManagementView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/rents',
       name: 'rents',
       component: () => import('@/views/rents/RentsView.vue'),
       meta: { requiresAuth: true }
     },
-    // {
-    //   path: '/charges',
-    //   name: 'charges',
-    //   component: () => import('@/views/charges/ChargesView.vue'),
-    //   meta: { requiresAuth: true }
-    // },
+    {
+      path: '/charges',
+      name: 'charges',
+      component: () => import('@/views/charges/ChargesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/charge-allocation',
+      name: 'charge-allocation',
+      component: () => import('@/views/charges/ChargeAllocationView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/charge-regularization',
+      name: 'charge-regularization',
+      component: () => import('@/views/charges/ChargeRegularizationView.vue'),
+      meta: { requiresAuth: true }
+    },
     {
       path: '/works',
       name: 'works',
       component: () => import('@/views/works/WorksView.vue'),
       meta: { requiresAuth: true }
     },
-    // {
-    //   path: '/fiscal',
-    //   name: 'fiscal',
-    //   component: () => import('@/views/FiscalView.vue'),
-    //   meta: { requiresAuth: true }
-    // },
-    // {
-    //   path: '/settings',
-    //   name: 'settings',
-    //   component: () => import('@/views/SettingsView.vue'),
-    //   meta: { requiresAuth: true }
-    // }
+    {
+      path: '/fiscal',
+      name: 'fiscal',
+      component: () => import('@/views/FiscalView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { requiresAuth: true }
+    }
   ]
 })
 

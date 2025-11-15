@@ -7,7 +7,7 @@
         <p class="text-base-content/70 mt-1">Gestion de votre patrimoine immobilier</p>
       </div>
       <button
-        @click="showDialog = true"
+        @click="openNewPropertyDialog"
         class="btn btn-primary gap-2"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,33 +70,43 @@
     <div v-else-if="properties.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
-          <thead>
-            <tr>
-              <th>Bien</th>
-              <th>Type</th>
-              <th>Adresse</th>
-              <th>Ville</th>
-              <th class="text-center">Surface</th>
-              <th class="text-right">Loyer</th>
-              <th class="text-center">Statut</th>
+          <thead class="bg-base-200">
+            <tr class="border-b-2 border-base-300">
+              <th class="border-r border-base-300">Bien</th>
+              <th class="border-r border-base-300">Type</th>
+              <th class="border-r border-base-300">Adresse</th>
+              <th class="border-r border-base-300">Ville</th>
+              <th class="text-center border-r border-base-300">Surface</th>
+              <th class="text-right border-r border-base-300">Loyer</th>
+              <th class="text-center border-r border-base-300">Statut</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="property in properties" :key="property.id" class="hover">
-              <td>
-                <div class="flex items-center gap-3">
-                  <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-lg w-10">
-                      <span class="text-sm font-bold">{{ property.name.charAt(0).toUpperCase() }}</span>
+            <template v-for="property in organizedProperties" :key="property.id">
+              <!-- Immeuble ou propriété indépendante -->
+              <tr class="hover" :class="{ 'font-semibold': property.type === 'immeuble' }">
+                <td>
+                  <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                      <div :class="property.type === 'immeuble' ? 'bg-accent text-accent-content' : 'bg-primary text-primary-content'" class="rounded-lg w-10 flex items-center justify-center">
+                        <svg v-if="property.type === 'immeuble'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span v-else class="text-sm font-bold">{{ property.name.charAt(0).toUpperCase() }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="font-medium flex items-center gap-2">
+                        {{ property.name }}
+                        <span v-if="property.type === 'immeuble' && property.apartments?.length" class="badge badge-sm badge-ghost">
+                          {{ property.apartments.length }} appt{{ property.apartments.length > 1 ? 's' : '' }}
+                        </span>
+                      </div>
+                      <div class="text-sm opacity-60">{{ property.postalCode }}</div>
                     </div>
                   </div>
-                  <div>
-                    <div class="font-medium">{{ property.name }}</div>
-                    <div class="text-sm opacity-60">{{ property.postalCode }}</div>
-                  </div>
-                </div>
-              </td>
+                </td>
               <td>
                 <div class="badge badge-info badge-sm">{{ formatPropertyType(property.type) }}</div>
               </td>
@@ -141,7 +151,72 @@
                   </button>
                 </div>
               </td>
-            </tr>
+              </tr>
+
+              <!-- Appartements de l'immeuble -->
+              <tr v-for="apartment in property.apartments" :key="apartment.id" class="hover bg-base-200/30">
+                <td>
+                  <div class="flex items-center gap-3 pl-8">
+                    <svg class="w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div class="avatar placeholder">
+                      <div class="bg-base-300 text-base-content rounded-lg w-8 flex items-center justify-center">
+                        <span class="text-xs font-bold">{{ apartment.name.charAt(0).toUpperCase() }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="font-medium text-sm">{{ apartment.name }}</div>
+                      <div class="text-xs opacity-50">{{ apartment.postalCode }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="badge badge-outline badge-sm">{{ formatPropertyType(apartment.type) }}</div>
+                </td>
+                <td class="text-sm">{{ apartment.address }}</td>
+                <td class="opacity-70 text-sm">{{ apartment.city }}</td>
+                <td class="text-center text-sm">{{ apartment.surface }} m²</td>
+                <td class="text-right font-semibold text-sm">{{ formatCurrency(apartment.currentRent) }}</td>
+                <td class="text-center">
+                  <div :class="getStatusBadgeClass(apartment.status)" class="badge badge-sm">
+                    {{ getStatusLabel(apartment.status) }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center justify-center gap-2">
+                    <button
+                      @click="viewProperty(apartment)"
+                      class="btn btn-ghost btn-xs"
+                      title="Voir détails"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="editProperty(apartment)"
+                      class="btn btn-ghost btn-xs"
+                      title="Modifier"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="deleteProperty(apartment)"
+                      class="btn btn-ghost btn-xs text-error"
+                      title="Supprimer"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -203,6 +278,21 @@
               </option>
             </select>
           </div>
+        </div>
+
+        <div v-if="propertyForm.type === 'appartement'" class="form-control">
+          <label class="label">
+            <span class="label-text">Appartient à l'immeuble</span>
+          </label>
+          <select v-model="propertyForm.buildingId" class="select select-bordered w-full">
+            <option :value="null">Aucun immeuble (appartement indépendant)</option>
+            <option v-for="building in buildings" :key="building.id" :value="building.id">
+              {{ building.name }} - {{ building.address }}
+            </option>
+          </select>
+          <label class="label">
+            <span class="label-text-alt">Sélectionnez l'immeuble auquel appartient cet appartement</span>
+          </label>
         </div>
 
         <div class="form-control">
@@ -274,18 +364,34 @@
           </div>
         </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Loyer mensuel (€)</span>
-          </label>
-          <input
-            v-model.number="propertyForm.currentRent"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="800"
-            class="input input-bordered w-full"
-          />
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Loyer mensuel (€)</span>
+            </label>
+            <input
+              v-model.number="propertyForm.currentRent"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="800"
+              class="input input-bordered w-full"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Taxe foncière annuelle (€)</span>
+            </label>
+            <input
+              v-model.number="propertyForm.propertyTax"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="1200"
+              class="input input-bordered w-full"
+            />
+          </div>
         </div>
 
         <div class="form-control">
@@ -315,7 +421,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import Modal from '@/components/ui/Modal.vue'
@@ -323,10 +429,41 @@ import Modal from '@/components/ui/Modal.vue'
 const router = useRouter()
 
 const properties = ref([])
+const buildings = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
 const saving = ref(false)
 const editingProperty = ref(null)
+
+// Organiser les propriétés en hiérarchie (immeubles avec leurs appartements)
+const organizedProperties = computed(() => {
+  const result = []
+  const propertiesByBuilding = {}
+
+  // Grouper les appartements par immeuble
+  properties.value.forEach(property => {
+    if (property.buildingId) {
+      if (!propertiesByBuilding[property.buildingId]) {
+        propertiesByBuilding[property.buildingId] = []
+      }
+      propertiesByBuilding[property.buildingId].push(property)
+    }
+  })
+
+  // Construire la liste organisée
+  properties.value.forEach(property => {
+    // Si c'est un bien sans buildingId (immeuble, maison, etc.)
+    if (!property.buildingId) {
+      // Ajouter le bien avec ses appartements s'il en a
+      result.push({
+        ...property,
+        apartments: propertiesByBuilding[property.id] || []
+      })
+    }
+  })
+
+  return result
+})
 
 const filters = reactive({
   search: '',
@@ -344,7 +481,9 @@ const propertyForm = reactive({
   surface: null,
   rooms: null,
   currentRent: null,
-  description: ''
+  propertyTax: null,
+  description: '',
+  buildingId: null
 })
 
 const propertyTypes = [
@@ -382,6 +521,17 @@ const loadProperties = async () => {
   }
 }
 
+const loadBuildings = async () => {
+  try {
+    const response = await api.get('/api/properties', {
+      params: { type: 'immeuble' }
+    })
+    buildings.value = response.data.data || []
+  } catch (error) {
+    console.error('Error loading buildings:', error)
+  }
+}
+
 const resetForm = () => {
   Object.assign(propertyForm, {
     name: '',
@@ -393,7 +543,9 @@ const resetForm = () => {
     surface: null,
     rooms: null,
     currentRent: null,
-    description: ''
+    propertyTax: null,
+    description: '',
+    buildingId: null
   })
 }
 
@@ -432,9 +584,15 @@ const viewProperty = (property) => {
   router.push(`/properties/${property.id}`)
 }
 
-const editProperty = (property) => {
+const editProperty = async (property) => {
   editingProperty.value = property
   Object.assign(propertyForm, property)
+  await loadBuildings()
+  showDialog.value = true
+}
+
+const openNewPropertyDialog = async () => {
+  await loadBuildings()
   showDialog.value = true
 }
 

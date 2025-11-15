@@ -68,12 +68,13 @@
     <div v-else-if="tenants.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
-          <thead>
-            <tr>
-              <th>Locataire</th>
-              <th>Contact</th>
-              <th>Bien</th>
-              <th class="text-center">Statut Bail</th>
+          <thead class="bg-base-200">
+            <tr class="border-b-2 border-base-300">
+              <th class="border-r border-base-300">Locataire</th>
+              <th class="border-r border-base-300">Contact</th>
+              <th class="border-r border-base-300">Bien occupé</th>
+              <th class="text-right border-r border-base-300">Loyer mensuel</th>
+              <th class="text-center border-r border-base-300">Statut Bail</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
@@ -96,15 +97,24 @@
               </td>
               <td>{{ tenant.phone }}</td>
               <td>
-                <span v-if="tenant.currentProperty">
-                  {{ tenant.currentProperty }}
-                </span>
+                <div v-if="getActiveLease(tenant)">
+                  <div class="font-medium">{{ getActiveLease(tenant).Property?.name }}</div>
+                  <div class="text-sm opacity-60">{{ getActiveLease(tenant).Property?.address }}</div>
+                </div>
                 <span v-else class="italic opacity-60">
                   Aucun bien
                 </span>
               </td>
+              <td class="text-right">
+                <span v-if="getActiveLease(tenant)" class="font-semibold text-success">
+                  {{ formatCurrency(getActiveLease(tenant).rentAmount) }}
+                </span>
+                <span v-else class="italic opacity-60">
+                  -
+                </span>
+              </td>
               <td class="text-center">
-                <div v-if="tenant.hasActiveLease" class="badge badge-success badge-sm">
+                <div v-if="getActiveLease(tenant)" class="badge badge-success badge-sm">
                   Bail actif
                 </div>
                 <div v-else class="badge badge-ghost badge-sm">
@@ -160,8 +170,78 @@
       </div>
     </div>
 
-    <!-- Dialog -->
-    <!-- TODO: Ajouter le dialog pour créer/modifier un locataire -->
+    <!-- Dialog Create/Edit -->
+    <Modal
+      v-model="showDialog"
+      :title="editingTenant ? 'Modifier le locataire' : 'Nouveau locataire'"
+      size="lg"
+      :hide-footer="true"
+    >
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Prénom *</span>
+            </label>
+            <input
+              v-model="tenantForm.firstName"
+              type="text"
+              placeholder="Jean"
+              class="input input-bordered w-full"
+              required
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Nom *</span>
+            </label>
+            <input
+              v-model="tenantForm.lastName"
+              type="text"
+              placeholder="Dupont"
+              class="input input-bordered w-full"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Email *</span>
+          </label>
+          <input
+            v-model="tenantForm.email"
+            type="email"
+            placeholder="email@exemple.com"
+            class="input input-bordered w-full"
+            required
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Téléphone</span>
+          </label>
+          <input
+            v-model="tenantForm.phone"
+            type="tel"
+            placeholder="06 12 34 56 78"
+            class="input input-bordered w-full"
+          />
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <button @click="closeDialog" class="btn btn-ghost">Annuler</button>
+          <button @click="saveTenant" :disabled="saving" class="btn btn-primary">
+            <span v-if="saving" class="loading loading-spinner loading-sm"></span>
+            {{ saving ? 'Enregistrement...' : (editingTenant ? 'Modifier' : 'Créer') }}
+          </button>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -169,6 +249,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import Modal from '@/components/ui/Modal.vue'
 
 const router = useRouter()
 
@@ -176,11 +257,20 @@ const tenants = ref([])
 const properties = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
+const saving = ref(false)
+const editingTenant = ref(null)
 
 const filters = reactive({
   search: '',
   leaseStatus: '',
   property: ''
+})
+
+const tenantForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: ''
 })
 
 const loadTenants = async () => {
@@ -210,12 +300,58 @@ const loadProperties = async () => {
   }
 }
 
+const resetForm = () => {
+  Object.assign(tenantForm, {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  })
+}
+
+const closeDialog = () => {
+  showDialog.value = false
+  editingTenant.value = null
+  resetForm()
+}
+
+const saveTenant = async () => {
+  if (!tenantForm.firstName || !tenantForm.lastName || !tenantForm.email) {
+    alert('Attention: Veuillez remplir tous les champs obligatoires')
+    return
+  }
+
+  saving.value = true
+  try {
+    if (editingTenant.value) {
+      await api.put(`/api/tenants/${editingTenant.value.id}`, tenantForm)
+      alert('Succès: Locataire modifié avec succès')
+    } else {
+      await api.post('/api/tenants', tenantForm)
+      alert('Succès: Locataire créé avec succès')
+    }
+    closeDialog()
+    loadTenants()
+  } catch (error) {
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de sauvegarder le locataire'}`)
+    console.error('Error saving tenant:', error)
+  } finally {
+    saving.value = false
+  }
+}
+
 const viewTenant = (tenant) => {
   router.push(`/tenants/${tenant.id}`)
 }
 
 const editTenant = (tenant) => {
-  // TODO: Ouvrir le dialog d'édition
+  editingTenant.value = tenant
+  Object.assign(tenantForm, {
+    firstName: tenant.firstName,
+    lastName: tenant.lastName,
+    email: tenant.email,
+    phone: tenant.phone || ''
+  })
   showDialog.value = true
 }
 
@@ -231,6 +367,18 @@ const deleteTenant = (tenant) => {
         console.error('Error deleting tenant:', error)
       })
   }
+}
+
+const getActiveLease = (tenant) => {
+  if (!tenant.Leases || tenant.Leases.length === 0) return null
+  return tenant.Leases.find(lease => lease.status === 'actif') || null
+}
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(value || 0)
 }
 
 onMounted(() => {

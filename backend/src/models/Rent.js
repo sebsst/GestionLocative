@@ -31,6 +31,11 @@ const Rent = sequelize.define('Rent', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
+  chargeProvisions: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+    comment: 'Provisions sur charges incluses dans le loyer'
+  },
   paidAmount: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0

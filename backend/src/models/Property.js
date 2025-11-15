@@ -98,6 +98,11 @@ const Property = sequelize.define('Property', {
   cadastralReference: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  propertyTax: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    comment: 'Taxe foncière annuelle'
   }
 }, {
   timestamps: true

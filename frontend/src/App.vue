@@ -38,8 +38,8 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 .app-container {
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #334155;
+  background-color: oklch(var(--b2));
+  color: oklch(var(--bc));
 }
 
 .layout-container {
@@ -51,16 +51,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
-  background-color: #f8fafc;
-}
-
-/* Mode sombre override pour App */
-.dark-mode .app-container {
-  background-color: #0f172a;
-  color: #e2e8f0;
-}
-
-.dark-mode .main-content {
-  background-color: #0f172a;
+  background-color: oklch(var(--b2));
+  color: oklch(var(--bc));
 }
 </style>

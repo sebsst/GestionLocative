@@ -3,14 +3,20 @@ import Property from './Property.js';
 import Tenant from './Tenant.js';
 import Lease from './Lease.js';
 import LeaseOccupant from './LeaseOccupant.js';
+import LeaseOccupancyPeriod from './LeaseOccupancyPeriod.js';
+import LeaseRentPeriod from './LeaseRentPeriod.js';
 import Rent from './Rent.js';
 import Communication from './Communication.js';
 import Charge from './Charge.js';
 import ChargeDistribution from './ChargeDistribution.js';
+import ChargeAllocation from './ChargeAllocation.js';
+import ChargeRegularization from './ChargeRegularization.js';
+import ChargeRegularizationDetail from './ChargeRegularizationDetail.js';
 import Work from './Work.js';
 import Artisan from './Artisan.js';
 import Quote from './Quote.js';
 import PropertyRentHistory from './PropertyRentHistory.js';
+import FiscalDeclaration from './FiscalDeclaration.js';
 
 // Property associations
 Property.belongsTo(Property, { as: 'building', foreignKey: 'buildingId' });
@@ -27,6 +33,14 @@ Lease.belongsTo(Tenant, { foreignKey: 'tenantId' });
 Lease.hasMany(LeaseOccupant, { foreignKey: 'leaseId', as: 'occupants' });
 LeaseOccupant.belongsTo(Lease, { foreignKey: 'leaseId' });
 
+// Lease occupancy periods
+Lease.hasMany(LeaseOccupancyPeriod, { foreignKey: 'leaseId', as: 'occupancyPeriods' });
+LeaseOccupancyPeriod.belongsTo(Lease, { foreignKey: 'leaseId' });
+
+// Lease rent periods
+Lease.hasMany(LeaseRentPeriod, { foreignKey: 'leaseId', as: 'rentPeriods' });
+LeaseRentPeriod.belongsTo(Lease, { foreignKey: 'leaseId' });
+
 // Rent associations
 Lease.hasMany(Rent, { foreignKey: 'leaseId' });
 Rent.belongsTo(Lease, { foreignKey: 'leaseId' });
@@ -42,6 +56,14 @@ Charge.belongsTo(Property, { foreignKey: 'propertyId' });
 Charge.hasMany(ChargeDistribution, { foreignKey: 'chargeId', as: 'distributions' });
 ChargeDistribution.belongsTo(Charge, { foreignKey: 'chargeId' });
 ChargeDistribution.belongsTo(Property, { foreignKey: 'propertyId' });
+ChargeDistribution.belongsTo(Lease, { foreignKey: 'leaseId' });
+Lease.hasMany(ChargeDistribution, { foreignKey: 'leaseId', as: 'chargeDistributions' });
+
+// ChargeAllocation associations
+Charge.hasMany(ChargeAllocation, { foreignKey: 'chargeId', as: 'allocations' });
+ChargeAllocation.belongsTo(Charge, { foreignKey: 'chargeId' });
+ChargeAllocation.belongsTo(Lease, { foreignKey: 'leaseId' });
+Lease.hasMany(ChargeAllocation, { foreignKey: 'leaseId', as: 'chargeAllocations' });
 
 // Work associations
 Property.hasMany(Work, { foreignKey: 'propertyId' });
@@ -61,18 +83,31 @@ Quote.belongsTo(Artisan, { foreignKey: 'artisanId' });
 Property.hasMany(PropertyRentHistory, { foreignKey: 'propertyId', as: 'rentHistory' });
 PropertyRentHistory.belongsTo(Property, { foreignKey: 'propertyId' });
 
+// ChargeRegularization associations
+Lease.hasMany(ChargeRegularization, { foreignKey: 'leaseId', as: 'chargeRegularizations' });
+ChargeRegularization.belongsTo(Lease, { foreignKey: 'leaseId' });
+
+ChargeRegularization.hasMany(ChargeRegularizationDetail, { foreignKey: 'regularizationId', as: 'details' });
+ChargeRegularizationDetail.belongsTo(ChargeRegularization, { foreignKey: 'regularizationId' });
+
 export {
   User,
   Property,
   Tenant,
   Lease,
   LeaseOccupant,
+  LeaseOccupancyPeriod,
+  LeaseRentPeriod,
   Rent,
   Communication,
   Charge,
   ChargeDistribution,
+  ChargeAllocation,
+  ChargeRegularization,
+  ChargeRegularizationDetail,
   Work,
   Artisan,
   Quote,
-  PropertyRentHistory
+  PropertyRentHistory,
+  FiscalDeclaration
 };

@@ -102,15 +102,15 @@
     <div v-else-if="works.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
-          <thead>
-            <tr>
-              <th>Bien</th>
-              <th>Nature</th>
-              <th class="text-center">Type</th>
-              <th>Artisan</th>
-              <th class="text-right">Montant</th>
-              <th>Date</th>
-              <th class="text-center">Statut</th>
+          <thead class="bg-base-200">
+            <tr class="border-b-2 border-base-300">
+              <th class="border-r border-base-300">Bien</th>
+              <th class="border-r border-base-300">Nature</th>
+              <th class="text-center border-r border-base-300">Type</th>
+              <th class="border-r border-base-300">Artisan</th>
+              <th class="text-right border-r border-base-300">Montant</th>
+              <th class="border-r border-base-300">Date</th>
+              <th class="text-center border-r border-base-300">Statut</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>

@@ -9,7 +9,7 @@ const Charge = sequelize.define('Charge', {
   },
   propertyId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'Properties',
       key: 'id'
@@ -21,6 +21,7 @@ const Charge = sequelize.define('Charge', {
       'electricite',
       'eau',
       'ordures',
+      'taxe_ordures',
       'jardin',
       'entretien',
       'assurance',

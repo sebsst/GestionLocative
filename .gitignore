@@ -45,3 +45,5 @@ backend/uploads/*
 
 # Docker
 .dockerignore
+
+claude.md

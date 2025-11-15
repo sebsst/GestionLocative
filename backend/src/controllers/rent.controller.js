@@ -1,6 +1,25 @@
-import { Rent, Lease, Property, Tenant } from '../models/index.js';
+import { Rent, Lease, LeaseRentPeriod, Property, Tenant } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { Op } from 'sequelize';
+
+/**
+ * Helper function to get the current rent period for a lease at a given date
+ */
+const getCurrentRentPeriod = async (leaseId, targetDate) => {
+  const period = await LeaseRentPeriod.findOne({
+    where: {
+      leaseId,
+      startDate: { [Op.lte]: targetDate },
+      [Op.or]: [
+        { endDate: null },
+        { endDate: { [Op.gte]: targetDate } }
+      ]
+    },
+    order: [['startDate', 'DESC']]
+  });
+
+  return period;
+};
 
 export const getAll = async (req, res, next) => {
   try {
@@ -208,6 +227,10 @@ export const generateMonthlyRents = async (req, res, next) => {
     });
 
     const createdRents = [];
+    const errors = [];
+
+    // Create target date for the first day of the month
+    const targetDate = new Date(year, month - 1, 1);
 
     for (const lease of leases) {
       // Check if rent already exists
@@ -216,21 +239,41 @@ export const generateMonthlyRents = async (req, res, next) => {
       });
 
       if (!existingRent) {
-        const rent = await Rent.create({
-          leaseId: lease.id,
-          month,
-          year,
-          expectedAmount: parseFloat(lease.rentAmount) + parseFloat(lease.chargesAmount),
-          status: 'en_attente'
-        });
-        createdRents.push(rent);
+        // Get the rent period active on the target date
+        const rentPeriod = await getCurrentRentPeriod(lease.id, targetDate);
+
+        if (!rentPeriod) {
+          // Fallback to lease's current amounts if no period exists yet
+          console.warn(`No rent period found for lease ${lease.id}, using lease amounts`);
+          const rent = await Rent.create({
+            leaseId: lease.id,
+            month,
+            year,
+            expectedAmount: parseFloat(lease.rentAmount) + parseFloat(lease.chargesAmount),
+            chargeProvisions: parseFloat(lease.chargesAmount) || 0,
+            status: 'en_attente'
+          });
+          createdRents.push(rent);
+        } else {
+          // Use the rent period amounts
+          const rent = await Rent.create({
+            leaseId: lease.id,
+            month,
+            year,
+            expectedAmount: parseFloat(rentPeriod.totalAmount),
+            chargeProvisions: parseFloat(rentPeriod.chargesAmount) || 0,
+            status: 'en_attente'
+          });
+          createdRents.push(rent);
+        }
       }
     }
 
     res.status(201).json({
       success: true,
       message: `${createdRents.length} loyers générés pour ${month}/${year}`,
-      data: createdRents
+      data: createdRents,
+      errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
     next(error);

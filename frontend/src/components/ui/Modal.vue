@@ -22,7 +22,7 @@
           </div>
 
           <!-- Footer -->
-          <div class="modal-action" v-if="!hideFooter">
+          <div class="modal-action" v-if="!hideFooter || $slots.footer">
             <slot name="footer">
               <button type="button" class="btn" @click="$emit('update:modelValue', false)">
                 {{ cancelText }}

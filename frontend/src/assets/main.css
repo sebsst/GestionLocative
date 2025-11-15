@@ -18,4 +18,17 @@
   .modal-backdrop {
     @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
   }
+
+  /* Badge avec padding horizontal global et bordures arrondies */
+  .badge {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 9999px;
+  }
+
+  /* Stat title en gras pour meilleure visibilité */
+  .stat-title {
+    font-weight: 700;
+    opacity: 1.0;
+  }
 }
