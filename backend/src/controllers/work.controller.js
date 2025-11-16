@@ -60,7 +60,21 @@ export const getOne = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
-    const work = await Work.create(req.body);
+    const workData = { ...req.body };
+
+    // Add file paths if files were uploaded (support multiple files)
+    if (req.files) {
+      if (req.files.quote && req.files.quote.length > 0) {
+        // Join multiple filenames with comma
+        workData.quote = req.files.quote.map(f => f.filename).join(',');
+      }
+      if (req.files.invoiceFile && req.files.invoiceFile.length > 0) {
+        // Join multiple filenames with comma
+        workData.invoiceFile = req.files.invoiceFile.map(f => f.filename).join(',');
+      }
+    }
+
+    const work = await Work.create(workData);
 
     res.status(201).json({
       success: true,
@@ -79,7 +93,25 @@ export const update = async (req, res, next) => {
       throw new AppError('Travaux non trouvés', 404);
     }
 
-    await work.update(req.body);
+    const workData = { ...req.body };
+
+    // Add file paths if files were uploaded (support multiple files)
+    if (req.files) {
+      if (req.files.quote && req.files.quote.length > 0) {
+        // Append new files to existing ones
+        const existingQuotes = work.quote ? work.quote.split(',') : [];
+        const newQuotes = req.files.quote.map(f => f.filename);
+        workData.quote = [...existingQuotes, ...newQuotes].join(',');
+      }
+      if (req.files.invoiceFile && req.files.invoiceFile.length > 0) {
+        // Append new files to existing ones
+        const existingInvoices = work.invoiceFile ? work.invoiceFile.split(',') : [];
+        const newInvoices = req.files.invoiceFile.map(f => f.filename);
+        workData.invoiceFile = [...existingInvoices, ...newInvoices].join(',');
+      }
+    }
+
+    await work.update(workData);
 
     res.json({
       success: true,

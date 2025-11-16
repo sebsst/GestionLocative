@@ -71,7 +71,7 @@
       <!-- Lease Details -->
       <div v-if="selectedLease" class="space-y-6">
         <!-- Summary Card -->
-        <div class="card bg-gradient-to-r from-primary/10 to-secondary/10 shadow-xl">
+        <!--div class="card bg-gradient-to-r from-primary/10 to-secondary/10 shadow-xl">
           <div class="card-body">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
@@ -96,7 +96,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div -->
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

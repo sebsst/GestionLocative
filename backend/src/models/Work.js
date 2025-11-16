@@ -63,9 +63,24 @@ const Work = sequelize.define('Work', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
+  isFiscalDeductible: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: 'Éligible à la déclaration fiscale (case 224)'
+  },
   invoice: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  quote: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Chemins des fichiers devis (séparés par virgule)'
+  },
+  invoiceFile: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Chemins des fichiers facture (séparés par virgule)'
   },
   notes: {
     type: DataTypes.TEXT,

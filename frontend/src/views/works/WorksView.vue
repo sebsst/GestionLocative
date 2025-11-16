@@ -5,15 +5,26 @@
         <h1 class="text-3xl font-bold">Gestion des travaux</h1>
         <p class="text-base-content/70 mt-1">Suivi et gestion de vos interventions</p>
       </div>
-      <button
-        @click="showDialog = true"
-        class="btn btn-primary gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Nouveaux travaux
-      </button>
+      <div class="flex gap-2">
+        <button
+          @click="showArtisansListDialog = true"
+          class="btn btn-outline gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          Gestion des artisans
+        </button>
+        <button
+          @click="showDialog = true"
+          class="btn btn-primary gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nouveaux travaux
+        </button>
+      </div>
     </div>
 
     <!-- Stats Cards -->
@@ -165,11 +176,10 @@
               </td>
               <td>
                 <div class="flex items-center justify-center gap-2">
-                  <button
+                   <button
                     @click="editWork(work)"
-                    class="btn btn-ghost btn-xs"
-                    title="Modifier"
-                  >
+                    class="btn btn-ghost btn-xs text-primary"
+                    title="Modifier"                  >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -311,15 +321,108 @@
         </div>
 
         <div class="form-control">
-          <label class="label cursor-pointer justify-start gap-2">
-            <input
-              type="checkbox"
-              id="isCommon"
-              v-model="workForm.isCommon"
-              class="checkbox"
-            />
-            <span class="label-text">Travaux communs</span>
+          <label class="label">
+            <span class="label-text">Statut *</span>
           </label>
+          <select v-model="workForm.status" class="select select-bordered w-full" required>
+            <option value="prevu">Prévu</option>
+            <option value="en_cours">En cours</option>
+            <option value="termine">Terminé</option>
+            <option value="paye">Payé</option>
+            <option value="annule">Annulé</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-2">
+              <input
+                type="checkbox"
+                id="isCommon"
+                v-model="workForm.isCommon"
+                class="checkbox"
+              />
+              <span class="label-text">Travaux communs</span>
+            </label>
+          </div>
+
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-2">
+              <input
+                type="checkbox"
+                id="isFiscalDeductible"
+                v-model="workForm.isFiscalDeductible"
+                class="checkbox checkbox-primary"
+              />
+              <span class="label-text font-semibold">Éligible à la déclaration fiscale (case 224)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="divider">Documents</div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Devis (plusieurs fichiers possibles)</span>
+            </label>
+            <input
+              type="file"
+              @change="handleQuoteUpload"
+              accept=".pdf,.jpg,.jpeg,.png"
+              multiple
+              class="file-input file-input-bordered w-full"
+            />
+            <div v-if="workForm.quoteFiles.length > 0" class="mt-2 space-y-1">
+              <div v-for="(file, index) in workForm.quoteFiles" :key="index" class="flex items-center gap-2">
+                <span class="label-text-alt text-success">✓ {{ file.name }}</span>
+                <button
+                  type="button"
+                  @click="removeQuoteFile(index)"
+                  class="btn btn-ghost btn-xs text-error"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div v-if="workForm.existingQuotes && workForm.existingQuotes.length > 0" class="mt-2 space-y-1">
+              <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
+              <div v-for="(quote, index) in workForm.existingQuotes" :key="index" class="flex items-center gap-2">
+                <span class="label-text-alt">📄 {{ quote }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Factures (plusieurs fichiers possibles)</span>
+            </label>
+            <input
+              type="file"
+              @change="handleInvoiceUpload"
+              accept=".pdf,.jpg,.jpeg,.png"
+              multiple
+              class="file-input file-input-bordered w-full"
+            />
+            <div v-if="workForm.invoiceFiles.length > 0" class="mt-2 space-y-1">
+              <div v-for="(file, index) in workForm.invoiceFiles" :key="index" class="flex items-center gap-2">
+                <span class="label-text-alt text-success">✓ {{ file.name }}</span>
+                <button
+                  type="button"
+                  @click="removeInvoiceFile(index)"
+                  class="btn btn-ghost btn-xs text-error"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div v-if="workForm.existingInvoices && workForm.existingInvoices.length > 0" class="mt-2 space-y-1">
+              <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
+              <div v-for="(invoice, index) in workForm.existingInvoices" :key="index" class="flex items-center gap-2">
+                <span class="label-text-alt">📄 {{ invoice }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -476,6 +579,235 @@
         </div>
       </template>
     </Modal>
+
+    <!-- Dialog Artisans List -->
+    <Modal
+      v-model="showArtisansListDialog"
+      title="Gestion des artisans"
+      size="xl"
+      :hide-footer="true"
+    >
+      <div class="mb-4 flex justify-end">
+        <button
+          @click="openCreateArtisanFromList"
+          class="btn btn-primary btn-sm gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nouvel artisan
+        </button>
+      </div>
+
+      <div v-if="artisans.length > 0" class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Entreprise</th>
+              <th>Spécialité</th>
+              <th>Contact</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="artisan in artisans" :key="artisan.id">
+              <td>
+                <div class="font-medium">{{ artisan.name }}</div>
+              </td>
+              <td>
+                <div class="text-sm">{{ artisan.company || '-' }}</div>
+              </td>
+              <td>
+                <div class="text-sm">{{ artisan.specialty || '-' }}</div>
+              </td>
+              <td>
+                <div class="text-sm">
+                  <div v-if="artisan.phone">📞 {{ artisan.phone }}</div>
+                  <div v-if="artisan.email">✉️ {{ artisan.email }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    @click="editArtisan(artisan)"
+                    class="btn btn-ghost btn-xs text-primary"
+                    title="Modifier"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteArtisan(artisan)"
+                    class="btn btn-ghost btn-xs text-error"
+                    title="Supprimer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="text-center py-8 text-base-content/60">
+        Aucun artisan enregistré
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <button @click="showArtisansListDialog = false" class="btn">Fermer</button>
+        </div>
+      </template>
+    </Modal>
+
+    <!-- Dialog Edit Artisan -->
+    <Modal
+      v-model="showEditArtisanDialog"
+      title="Modifier l'artisan"
+      size="lg"
+      :hide-footer="true"
+    >
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Nom *</span>
+          </label>
+          <input
+            v-model="editArtisanForm.name"
+            type="text"
+            placeholder="Nom de l'artisan"
+            class="input input-bordered w-full"
+            required
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Entreprise</span>
+          </label>
+          <input
+            v-model="editArtisanForm.company"
+            type="text"
+            placeholder="Nom de l'entreprise"
+            class="input input-bordered w-full"
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Spécialité</span>
+          </label>
+          <input
+            v-model="editArtisanForm.specialty"
+            type="text"
+            placeholder="Ex: Plomberie, Électricité, Peinture..."
+            class="input input-bordered w-full"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Téléphone</span>
+            </label>
+            <input
+              v-model="editArtisanForm.phone"
+              type="tel"
+              placeholder="Téléphone"
+              class="input input-bordered w-full"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Email</span>
+            </label>
+            <input
+              v-model="editArtisanForm.email"
+              type="email"
+              placeholder="Email"
+              class="input input-bordered w-full"
+            />
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Adresse</span>
+          </label>
+          <input
+            v-model="editArtisanForm.address"
+            type="text"
+            placeholder="Adresse"
+            class="input input-bordered w-full"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Ville</span>
+            </label>
+            <input
+              v-model="editArtisanForm.city"
+              type="text"
+              placeholder="Ville"
+              class="input input-bordered w-full"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Code postal</span>
+            </label>
+            <input
+              v-model="editArtisanForm.postalCode"
+              type="text"
+              placeholder="Code postal"
+              class="input input-bordered w-full"
+            />
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">SIRET</span>
+          </label>
+          <input
+            v-model="editArtisanForm.siret"
+            type="text"
+            placeholder="Numéro SIRET"
+            class="input input-bordered w-full"
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Notes</span>
+          </label>
+          <textarea
+            v-model="editArtisanForm.notes"
+            rows="3"
+            placeholder="Notes supplémentaires"
+            class="textarea textarea-bordered w-full"
+          ></textarea>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <button @click="showEditArtisanDialog = false" class="btn">Annuler</button>
+          <button @click="updateArtisan" :disabled="savingArtisan" class="btn btn-primary">
+            {{ savingArtisan ? 'Modification...' : 'Modifier' }}
+          </button>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -490,9 +822,12 @@ const artisans = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
 const showArtisanDialog = ref(false)
+const showArtisansListDialog = ref(false)
+const showEditArtisanDialog = ref(false)
 const saving = ref(false)
 const savingArtisan = ref(false)
 const editingWork = ref(null)
+const editingArtisan = ref(null)
 
 const filters = reactive({
   search: '',
@@ -509,10 +844,28 @@ const workForm = reactive({
   estimatedAmount: null,
   estimatedDate: null,
   isCommon: false,
-  status: 'prevu'
+  isFiscalDeductible: true,
+  status: 'prevu',
+  quoteFiles: [],
+  invoiceFiles: [],
+  existingQuotes: [],
+  existingInvoices: []
 })
 
 const artisanForm = reactive({
+  name: '',
+  company: '',
+  specialty: '',
+  phone: '',
+  email: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  siret: '',
+  notes: ''
+})
+
+const editArtisanForm = reactive({
   name: '',
   company: '',
   specialty: '',
@@ -591,7 +944,12 @@ const resetWorkForm = () => {
     estimatedAmount: null,
     estimatedDate: null,
     isCommon: false,
-    status: 'prevu'
+    isFiscalDeductible: true,
+    status: 'prevu',
+    quoteFiles: [],
+    invoiceFiles: [],
+    existingQuotes: [],
+    existingInvoices: []
   })
 }
 
@@ -616,6 +974,24 @@ const closeDialog = () => {
   resetWorkForm()
 }
 
+const handleQuoteUpload = (event) => {
+  const files = Array.from(event.target.files)
+  workForm.quoteFiles.push(...files)
+}
+
+const handleInvoiceUpload = (event) => {
+  const files = Array.from(event.target.files)
+  workForm.invoiceFiles.push(...files)
+}
+
+const removeQuoteFile = (index) => {
+  workForm.quoteFiles.splice(index, 1)
+}
+
+const removeInvoiceFile = (index) => {
+  workForm.invoiceFiles.splice(index, 1)
+}
+
 const saveWork = async () => {
   if (!workForm.propertyId || !workForm.type || !workForm.nature) {
     alert('Attention: Veuillez remplir tous les champs obligatoires')
@@ -624,11 +1000,38 @@ const saveWork = async () => {
 
   saving.value = true
   try {
+    const formData = new FormData()
+
+    // Add all form fields
+    formData.append('propertyId', workForm.propertyId)
+    formData.append('type', workForm.type)
+    formData.append('nature', workForm.nature)
+    formData.append('description', workForm.description || '')
+    formData.append('status', workForm.status)
+    formData.append('isCommon', workForm.isCommon)
+    formData.append('isFiscalDeductible', workForm.isFiscalDeductible)
+
+    if (workForm.artisanId) formData.append('artisanId', workForm.artisanId)
+    if (workForm.estimatedAmount) formData.append('estimatedAmount', workForm.estimatedAmount)
+    if (workForm.estimatedDate) formData.append('estimatedDate', workForm.estimatedDate)
+
+    // Add files if present (multiple files)
+    workForm.quoteFiles.forEach((file) => {
+      formData.append('quote', file)
+    })
+    workForm.invoiceFiles.forEach((file) => {
+      formData.append('invoiceFile', file)
+    })
+
     if (editingWork.value) {
-      await api.put(`/api/works/${editingWork.value.id}`, workForm)
+      await api.put(`/api/works/${editingWork.value.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
       alert('Succès: Travaux modifiés avec succès')
     } else {
-      await api.post('/api/works', workForm)
+      await api.post('/api/works', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
       alert('Succès: Travaux créés avec succès')
     }
     closeDialog()
@@ -643,6 +1046,11 @@ const saveWork = async () => {
 
 const editWork = (work) => {
   editingWork.value = work
+
+  // Parse existing files into arrays
+  const existingQuotes = work.quote ? (typeof work.quote === 'string' ? work.quote.split(',') : [work.quote]) : []
+  const existingInvoices = work.invoiceFile ? (typeof work.invoiceFile === 'string' ? work.invoiceFile.split(',') : [work.invoiceFile]) : []
+
   Object.assign(workForm, {
     propertyId: work.propertyId,
     type: work.type,
@@ -650,9 +1058,14 @@ const editWork = (work) => {
     description: work.description || '',
     artisanId: work.artisanId,
     estimatedAmount: work.estimatedAmount,
-    estimatedDate: work.estimatedDate ? new Date(work.estimatedDate) : null,
+    estimatedDate: work.estimatedDate ? new Date(work.estimatedDate).toISOString().split('T')[0] : null,
     isCommon: work.isCommon || false,
-    status: work.status
+    isFiscalDeductible: work.isFiscalDeductible !== undefined ? work.isFiscalDeductible : true,
+    status: work.status,
+    quoteFiles: [],
+    invoiceFiles: [],
+    existingQuotes: existingQuotes,
+    existingInvoices: existingInvoices
   })
   showDialog.value = true
 }
@@ -748,6 +1161,65 @@ const formatCurrency = (value) => {
 
 const formatDate = (date) => {
   return date ? new Date(date).toLocaleDateString('fr-FR') : '-'
+}
+
+const openCreateArtisanFromList = () => {
+  showArtisansListDialog.value = false
+  showArtisanDialog.value = true
+}
+
+const editArtisan = (artisan) => {
+  editingArtisan.value = artisan
+  Object.assign(editArtisanForm, {
+    name: artisan.name,
+    company: artisan.company || '',
+    specialty: artisan.specialty || '',
+    phone: artisan.phone || '',
+    email: artisan.email || '',
+    address: artisan.address || '',
+    city: artisan.city || '',
+    postalCode: artisan.postalCode || '',
+    siret: artisan.siret || '',
+    notes: artisan.notes || ''
+  })
+  showEditArtisanDialog.value = true
+}
+
+const updateArtisan = async () => {
+  if (!editArtisanForm.name) {
+    alert('Attention: Le nom de l\'artisan est obligatoire')
+    return
+  }
+
+  savingArtisan.value = true
+  try {
+    await api.put(`/api/works/artisans/${editingArtisan.value.id}`, editArtisanForm)
+    alert('Succès: Artisan modifié avec succès')
+
+    showEditArtisanDialog.value = false
+    editingArtisan.value = null
+    await loadArtisans()
+  } catch (error) {
+    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de modifier l\'artisan'}`)
+    console.error('Error updating artisan:', error)
+  } finally {
+    savingArtisan.value = false
+  }
+}
+
+const deleteArtisan = async (artisan) => {
+  if (!confirm(`Voulez-vous vraiment supprimer l'artisan : ${artisan.name} ?`)) {
+    return
+  }
+
+  try {
+    await api.delete(`/api/works/artisans/${artisan.id}`)
+    alert('Succès: Artisan supprimé avec succès')
+    await loadArtisans()
+  } catch (error) {
+    alert('Erreur: Impossible de supprimer l\'artisan')
+    console.error('Error deleting artisan:', error)
+  }
 }
 
 onMounted(() => {

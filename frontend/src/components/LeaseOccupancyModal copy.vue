@@ -20,23 +20,23 @@
         </div>
       </div>
 
-       <!-- Tabs -->
-       <div class="tabs tabs-boxed mb-4 gap-1">
-         <a
-           class="tab tab-lg"
-           :class="{ 'tab-active': activeTab === 'new' }"
-           @click="activeTab = 'new'"
-         >
-           Nouvelle période
-         </a>
-         <a
-           class="tab tab-lg"
-           :class="{ 'tab-active': activeTab === 'history' }"
-           @click="activeTab = 'history'"
-         >
-           Historique
-         </a>
-       </div>
+      <!-- Tabs -->
+      <div class="tabs tabs-boxed mb-4 gap-1">
+        <a
+          class="tab tab-lg"
+          :class="{ 'tab-active': activeTab === 'history' }"
+          @click="activeTab = 'history'"
+        >
+          Historique
+        </a>
+        <a
+          class="tab tab-lg"
+          :class="{ 'tab-active': activeTab === 'new' }"
+          @click="activeTab = 'new'"
+        >
+          Nouvelle période
+        </a>
+      </div>
 
       <!-- History Tab -->
       <div v-if="activeTab === 'history'" class="overflow-x-auto">
@@ -96,27 +96,17 @@
       <div v-if="activeTab === 'new'">
         <form @submit.prevent="savePeriod" class="space-y-4">
           <div class="grid grid-cols-3 gap-4">
-             <div class="form-control">
-               <label class="label pb-2">
-                 <span class="label-text font-semibold">Date d'entrée *</span>
-               </label>
-               <div class="flex gap-2">
-                 <input
-                   v-model="periodForm.startDate"
-                   type="date"
-                   class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary flex-1"
-                   required
-                 />
-                 <button
-                   type="button"
-                   @click="setToday"
-                   class="btn btn-outline btn-sm"
-                   title="Utiliser la date d'aujourd'hui"
-                 >
-                   Aujourd'hui
-                 </button>
-               </div>
-             </div>
+            <div class="form-control">
+              <label class="label pb-2">
+                <span class="label-text font-semibold">Date d'entrée *</span>
+              </label>
+              <input
+                v-model="periodForm.startDate"
+                type="date"
+                class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary"
+                required
+              />
+            </div>
 
             <div class="form-control">
               <label class="label pb-2">
@@ -208,7 +198,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updated']);
 
 const toast = useToast();
-const activeTab = ref('new');
+const activeTab = ref('history');
 const periods = ref([]);
 const currentPeriod = ref(null);
 const loading = ref(false);
@@ -226,29 +216,8 @@ watch(() => props.show, async (newValue) => {
   if (newValue && props.lease) {
     await loadPeriods();
     await loadCurrentPeriod();
-    initializeForm();
   }
 });
-
-const initializeForm = () => {
-  // Set start date to today or day after current period ends
-  let startDate = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD format
-
-  if (currentPeriod.value && currentPeriod.value.endDate) {
-    const nextDay = new Date(currentPeriod.value.endDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    startDate = nextDay.toISOString().split('T')[0];
-  }
-
-  // Set number of occupants to current period's count or default to 1
-  const occupants = currentPeriod.value ? currentPeriod.value.numberOfOccupants : 1;
-
-  periodForm.value = {
-    startDate: startDate,
-    endDate: '',
-    numberOfOccupants: occupants
-  };
-};
 
 const loadPeriods = async () => {
   loading.value = true;
@@ -326,10 +295,6 @@ const cancelEdit = () => {
   error.value = null;
 };
 
-const setToday = () => {
-  periodForm.value.startDate = new Date().toISOString().split('T')[0];
-};
-
 const deletePeriod = async (periodId) => {
   if (!confirm('Êtes-vous sûr de vouloir supprimer cette période ?')) return;
 
@@ -398,7 +363,7 @@ const formatDate = (date) => {
 
 const close = () => {
   cancelEdit();
-  activeTab.value = 'new';
+  activeTab.value = 'history';
   emit('close');
 };
 </script>

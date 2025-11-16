@@ -21,11 +21,10 @@
           </div>
         </div>
 
-        <div class="stats shadow bg-success text-success-content">
+        <div class="stats shadow ">
           <div class="stat">
             <div class="stat-title text-success-content/70">Biens Loués</div>
             <div class="stat-value">{{ stats.rentedProperties }}</div>
-            <div class="stat-desc text-success-content/70">{{ stats.occupancyRate }}% d'occupation</div>
           </div>
         </div>
 
@@ -123,7 +122,7 @@
             <div v-for="activity in recentActivities" :key="activity.date"
                  class="flex items-start gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors">
               <div class="avatar placeholder">
-                <div class="rounded-full w-10 h-10"
+                <div class="rounded-full w-10 h-10  flex items-center justify-center"
                      :class="{
                        'bg-info text-info-content': activity.severity === 'info',
                        'bg-success text-success-content': activity.severity === 'success',
