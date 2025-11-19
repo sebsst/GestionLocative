@@ -21,9 +21,46 @@ const getCurrentRentPeriod = async (leaseId, targetDate) => {
   return period;
 };
 
+/**
+ * Helper function to update overdue rents status
+ */
+const updateOverdueRents = async () => {
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+
+  try {
+    // Find all rents that are en_attente or partiel and are overdue
+    const overdueRents = await Rent.findAll({
+      where: {
+        status: { [Op.in]: ['en_attente', 'partiel'] },
+        [Op.or]: [
+          { year: { [Op.lt]: currentYear } },
+          {
+            year: currentYear,
+            month: { [Op.lt]: currentMonth }
+          }
+        ]
+      }
+    });
+
+    // Update their status to en_retard
+    for (const rent of overdueRents) {
+      await rent.update({ status: 'en_retard' });
+    }
+
+    console.log(`Updated ${overdueRents.length} overdue rents to 'en_retard' status`);
+  } catch (error) {
+    console.error('Error updating overdue rents:', error);
+  }
+};
+
 export const getAll = async (req, res, next) => {
   try {
-    const { year, month, status, leaseId } = req.query;
+    // Update overdue rents status before fetching
+    await updateOverdueRents();
+
+    const { year, month, status, leaseId, tenantId } = req.query;
     const where = {};
 
     if (year) where.year = year;
@@ -31,17 +68,25 @@ export const getAll = async (req, res, next) => {
     if (status) where.status = status;
     if (leaseId) where.leaseId = leaseId;
 
+    // Add tenant filtering if provided
+    let includeOptions = [
+      {
+        model: Lease,
+        include: [
+          { model: Property },
+          { model: Tenant }
+        ]
+      }
+    ];
+
+    if (tenantId) {
+      includeOptions[0].where = { tenantId };
+      includeOptions[0].required = true;
+    }
+
     const rents = await Rent.findAll({
       where,
-      include: [
-        {
-          model: Lease,
-          include: [
-            { model: Property },
-            { model: Tenant }
-          ]
-        }
-      ],
+      include: includeOptions,
       order: [['year', 'DESC'], ['month', 'DESC']]
     });
 

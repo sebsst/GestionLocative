@@ -5,6 +5,7 @@ import Lease from './Lease.js';
 import LeaseOccupant from './LeaseOccupant.js';
 import LeaseOccupancyPeriod from './LeaseOccupancyPeriod.js';
 import LeaseRentPeriod from './LeaseRentPeriod.js';
+import LeaseTenant from './LeaseTenant.js';
 import Rent from './Rent.js';
 import Communication from './Communication.js';
 import Charge from './Charge.js';
@@ -17,6 +18,7 @@ import Artisan from './Artisan.js';
 import Quote from './Quote.js';
 import PropertyRentHistory from './PropertyRentHistory.js';
 import FiscalDeclaration from './FiscalDeclaration.js';
+import Document from './Document.js';
 
 // Property associations
 Property.belongsTo(Property, { as: 'building', foreignKey: 'buildingId' });
@@ -90,6 +92,17 @@ ChargeRegularization.belongsTo(Lease, { foreignKey: 'leaseId' });
 ChargeRegularization.hasMany(ChargeRegularizationDetail, { foreignKey: 'regularizationId', as: 'details' });
 ChargeRegularizationDetail.belongsTo(ChargeRegularization, { foreignKey: 'regularizationId' });
 
+// Document associations
+Property.hasMany(Document, { foreignKey: 'propertyId', as: 'documents' });
+Document.belongsTo(Property, { foreignKey: 'propertyId' });
+
+// LeaseTenant associations (many-to-many between Lease and Tenant)
+Lease.hasMany(LeaseTenant, { foreignKey: 'leaseId', as: 'leaseTenantsRelations' });
+LeaseTenant.belongsTo(Lease, { foreignKey: 'leaseId' });
+
+Tenant.hasMany(LeaseTenant, { foreignKey: 'tenantId', as: 'tenantLeasesRelations' });
+LeaseTenant.belongsTo(Tenant, { foreignKey: 'tenantId' });
+
 export {
   User,
   Property,
@@ -98,6 +111,7 @@ export {
   LeaseOccupant,
   LeaseOccupancyPeriod,
   LeaseRentPeriod,
+  LeaseTenant,
   Rent,
   Communication,
   Charge,
@@ -109,5 +123,6 @@ export {
   Artisan,
   Quote,
   PropertyRentHistory,
-  FiscalDeclaration
+  FiscalDeclaration,
+  Document
 };

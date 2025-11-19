@@ -7,10 +7,12 @@ import {
   Rent,
   ChargeAllocation,
   LeaseRentPeriod,
-  LeaseOccupancyPeriod
+  LeaseOccupancyPeriod,
+  Charge
 } from '../models/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
+import { generateChargeRegularization } from '../services/pdf.service.js';
 
 /**
  * Helper: Calculate number of days in a date range
@@ -501,6 +503,86 @@ export const getRegularizationStats = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
+    next(error);
+  }
+};
+
+/**
+ * Generate PDF for regularization
+ */
+export const generateRegularizationPDF = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const regularization = await ChargeRegularization.findByPk(id, {
+      include: [
+        {
+          model: Lease,
+          include: [
+            {
+              model: Tenant,
+              attributes: ['id', 'firstName', 'lastName', 'email', 'phone', 'address', 'postalCode', 'city']
+            },
+            {
+              model: Property,
+              attributes: ['id', 'name', 'address', 'postalCode', 'city']
+            }
+          ]
+        },
+        {
+          model: ChargeRegularizationDetail,
+          as: 'details'
+        }
+      ]
+    });
+
+    if (!regularization) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Régularisation non trouvée' }
+      });
+    }
+
+    // Get charge details for the PDF
+    const chargeDetails = await ChargeAllocation.findAll({
+      where: {
+        leaseId: regularization.leaseId,
+        createdAt: {
+          [Op.between]: [regularization.periodStart, regularization.periodEnd]
+        }
+      },
+      include: [
+        {
+          model: Charge,
+          attributes: ['id', 'name', 'type', 'date', 'amount']
+        }
+      ]
+    });
+
+    // Format charge details for PDF
+    const formattedChargeDetails = chargeDetails.map(allocation => ({
+      name: allocation.Charge?.name || 'Charge',
+      type: allocation.Charge?.type || 'autre',
+      date: allocation.Charge?.date,
+      amount: allocation.amount
+    }));
+
+    // Generate PDF
+    const pdfBuffer = await generateChargeRegularization(
+      regularization,
+      regularization.Lease,
+      regularization.Lease.Tenant,
+      regularization.Lease.Property,
+      formattedChargeDetails
+    );
+
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=decompte-charges-${regularization.year}-${regularization.id.slice(-6)}.pdf`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('Error generating regularization PDF:', error);
     next(error);
   }
 };

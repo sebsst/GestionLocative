@@ -215,6 +215,149 @@ export const generateFiscalDeclaration = async (year, properties, charges, works
   });
 };
 
+export const generateChargeRegularization = async (regularization, lease, tenant, property, chargeDetails) => {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50 });
+    const chunks = [];
+
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    // Title
+    doc.fontSize(18).text('DÉCOMPTE ANNUEL DES CHARGES', { align: 'center', underline: true });
+    doc.fontSize(14).text(`Année ${regularization.year}`, { align: 'center' });
+    doc.moveDown(2);
+
+    // Date and reference
+    doc.fontSize(12).text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, { align: 'right' });
+    doc.text(`Référence: REG-${regularization.year}-${regularization.id.slice(-6).toUpperCase()}`, { align: 'right' });
+    doc.moveDown();
+
+    // Tenant info
+    doc.fontSize(14).text('Destinataire:');
+    doc.fontSize(12)
+      .text(`${tenant.firstName} ${tenant.lastName}`)
+      .text(tenant.address || '')
+      .text(`${tenant.postalCode || ''} ${tenant.city || ''}`);
+    doc.moveDown();
+
+    // Property info
+    doc.fontSize(14).text('Bien concerné:');
+    doc.fontSize(12)
+      .text(property.name)
+      .text(property.address)
+      .text(`${property.postalCode} ${property.city}`);
+    doc.moveDown();
+
+    // Period
+    doc.fontSize(14).text('Période de régularisation:');
+    doc.fontSize(12)
+      .text(`Du ${new Date(regularization.periodStart).toLocaleDateString('fr-FR')} au ${new Date(regularization.periodEnd).toLocaleDateString('fr-FR')}`);
+    doc.moveDown(2);
+
+    // Summary
+    doc.fontSize(16).text('RÉCAPITULATIF', { underline: true });
+    doc.moveDown();
+
+    const tableTop = doc.y;
+    const col1 = 50;
+    const col2 = 300;
+    const col3 = 450;
+
+    // Header
+    doc.fontSize(12);
+    doc.text('Libellé', col1, tableTop);
+    doc.text('Montant', col2, tableTop, { width: 100, align: 'right' });
+    doc.text('Solde', col3, tableTop, { width: 100, align: 'right' });
+
+    let currentY = tableTop + 25;
+
+    // Provisions paid
+    doc.text('Provisions versées', col1, currentY);
+    doc.text(`${regularization.totalProvisions.toFixed(2)} €`, col2, currentY, { width: 100, align: 'right' });
+    doc.text('', col3, currentY);
+
+    currentY += 20;
+
+    // Real charges
+    doc.text('Charges réelles', col1, currentY);
+    doc.text(`${regularization.totalRealCharges.toFixed(2)} €`, col2, currentY, { width: 100, align: 'right' });
+    doc.text('', col3, currentY);
+
+    currentY += 25;
+
+    // Regularization amount
+    const regularizationText = regularization.regularizationAmount >= 0 ? 'Solde à payer' : 'Solde à rembourser';
+    const regularizationAmount = Math.abs(regularization.regularizationAmount);
+
+    doc.font('Helvetica-Bold');
+    doc.text(regularizationText, col1, currentY);
+    doc.text(`${regularizationAmount.toFixed(2)} €`, col3, currentY, { width: 100, align: 'right' });
+    doc.font('Helvetica');
+
+    currentY += 30;
+
+    // Detail of charges
+    if (chargeDetails && chargeDetails.length > 0) {
+      doc.addPage();
+      doc.fontSize(16).text('DÉTAIL DES CHARGES', { underline: true });
+      doc.moveDown();
+
+      doc.fontSize(10);
+      const detailTableTop = doc.y;
+      const dCol1 = 50;
+      const dCol2 = 200;
+      const dCol3 = 350;
+      const dCol4 = 450;
+
+      // Detail header
+      doc.text('Charge', dCol1, detailTableTop);
+      doc.text('Type', dCol2, detailTableTop);
+      doc.text('Date', dCol3, detailTableTop);
+      doc.text('Montant', dCol4, detailTableTop, { width: 80, align: 'right' });
+
+      let detailY = detailTableTop + 20;
+
+      chargeDetails.forEach(charge => {
+        doc.text(charge.name || 'N/A', dCol1, detailY, { width: 140 });
+        doc.text(charge.type || 'N/A', dCol2, detailY, { width: 140 });
+        doc.text(charge.date ? new Date(charge.date).toLocaleDateString('fr-FR') : 'N/A', dCol3, detailY, { width: 80 });
+        doc.text(`${parseFloat(charge.amount || 0).toFixed(2)} €`, dCol4, detailY, { width: 80, align: 'right' });
+        detailY += 15;
+      });
+    }
+
+    doc.moveDown(2);
+
+    // Payment instructions
+    doc.fontSize(12);
+    if (regularization.regularizationAmount > 0) {
+      doc.text('Vous êtes prié(e) de bien vouloir régulariser ce solde dans les 30 jours suivant réception de ce décompte.', { align: 'justify' });
+      doc.moveDown();
+      doc.text('Mode de paiement: [Préciser le mode de paiement souhaité]', { align: 'justify' });
+    } else if (regularization.regularizationAmount < 0) {
+      doc.text('Le solde indiqué ci-dessus vous sera remboursé dans les meilleurs délais.', { align: 'justify' });
+      doc.moveDown();
+      doc.text('Le remboursement sera effectué par [Préciser le mode de remboursement].', { align: 'justify' });
+    } else {
+      doc.text('Aucune régularisation n\'est nécessaire. Les provisions versées correspondent exactement aux charges réelles.', { align: 'justify' });
+    }
+
+    doc.moveDown(2);
+
+    // Footer
+    doc.fontSize(12)
+      .text('Pour toute question concernant ce décompte, n\'hésitez pas à nous contacter.', { align: 'justify' })
+      .moveDown()
+      .text('Cordialement,', { align: 'justify' })
+      .moveDown(2)
+      .text('[Nom du bailleur]', { align: 'justify' });
+
+    doc.end();
+  });
+};
+
 export const generateLeaseContract = async (lease, tenant, property) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
@@ -293,5 +436,6 @@ export default {
   generateRentReminder,
   generateLateRentNotice,
   generateFiscalDeclaration,
-  generateLeaseContract
+  generateLeaseContract,
+  generateChargeRegularization
 };

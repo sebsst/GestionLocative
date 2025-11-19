@@ -61,13 +61,40 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex justify-center items-center h-64">
-      <span class="loading loading-spinner loading-lg text-primary"></span>
-    </div>
+     <!-- View Toggle -->
+     <div v-if="properties.length > 0" class="flex items-center justify-between mt-6 mb-4">
+       <h2 class="text-xl font-semibold">Propriétés</h2>
+                 <div class="flex gap-2">
+         <button
+           @click="viewMode = 'table'"
+           :class="viewMode === 'table' ? 'btn-primary' : 'btn-ghost'"
+           class="btn btn-sm"
+         >
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+           </svg>
+           Tableau
+         </button>
+         <button
+           @click="viewMode = 'cards'"
+           :class="viewMode === 'cards' ? 'btn-primary' : 'btn-ghost'"
+           class="btn btn-sm"
+         >
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+           </svg>
+           Cartes
+         </button>
+       </div>
+     </div>
 
-    <!-- Table -->
-    <div v-else-if="properties.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
+     <!-- Loading -->
+     <div v-if="loading" class="flex justify-center items-center h-64">
+       <span class="loading loading-spinner loading-lg text-primary"></span>
+     </div>
+
+     <!-- Table -->
+     <div v-else-if="properties.length > 0 && viewMode === 'table'" class="card bg-base-100 shadow-xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
           <thead class="bg-base-200">
@@ -85,7 +112,7 @@
           <tbody>
             <template v-for="property in organizedProperties" :key="property.id">
               <!-- Immeuble ou propriété indépendante -->
-              <tr class="hover" :class="{ 'font-semibold': property.type === 'immeuble' }">
+               <tr class="hover h-6" :class="{ 'font-semibold': property.type === 'immeuble' }">
                 <td>
                   <div class="flex items-center gap-3">
                     <div class="avatar placeholder">
@@ -154,7 +181,7 @@
               </tr>
 
               <!-- Appartements de l'immeuble -->
-              <tr v-for="apartment in property.apartments" :key="apartment.id" class="hover bg-base-200/30">
+               <tr v-for="apartment in property.apartments" :key="apartment.id" class="hover h-6 bg-base-200/30">
                 <td>
                   <div class="flex items-center gap-3 pl-8">
                     <svg class="w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +211,7 @@
                   </div>
                 </td>
                 <td>
-                  <div class="flex items-center justify-center gap-2">
+                  <div class="flex items-center justify-center gap-3">
                     <button
                       @click="viewProperty(apartment)"
                       class="btn btn-ghost btn-xs"
@@ -220,12 +247,76 @@
           </tbody>
         </table>
       </div>
-    </div>
+     </div>
 
-    <!-- Empty State -->
-    <div v-else class="card bg-base-100 shadow-xl">
+       <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+         <div
+           v-for="property in properties"
+           :key="property.id"
+           @click="viewProperty(property)"
+           class="card bg-base-100 shadow-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105"
+         >
+           <div class="card-body p-4">
+             <!-- Property Header -->
+             <div class="flex items-start justify-between mb-3">
+               <div class="flex items-center gap-3">
+                 <div class="avatar placeholder">
+                   <div :class="property.type === 'immeuble' ? 'bg-accent text-accent-content' : 'bg-primary text-primary-content'" class="rounded-lg w-10 flex items-center justify-center">
+                     <svg v-if="property.type === 'immeuble'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                     </svg>
+                     <span v-else class="text-sm font-bold">{{ property.name.charAt(0).toUpperCase() }}</span>
+                   </div>
+                 </div>
+                 <div>
+                   <h3 class="card-title text-base leading-tight">{{ property.name }}</h3>
+                   <div class="badge badge-info badge-xs mt-1">{{ formatPropertyType(property.type) }}</div>
+                 </div>
+               </div>
+               <div v-if="property.type === 'immeuble' && property.apartments?.length" class="badge badge-sm badge-ghost">
+                 {{ property.apartments.length }} appt{{ property.apartments.length > 1 ? 's' : '' }}
+               </div>
+             </div>
+
+             <!-- Property Details -->
+             <div class="space-y-2">
+               <div class="flex items-center gap-2 text-sm">
+                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                 </svg>
+                 <span class="truncate">{{ property.address }}, {{ property.city }}</span>
+               </div>
+
+               <div v-if="property.surface" class="flex items-center gap-2 text-sm">
+                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                 </svg>
+                 <span>{{ property.surface }} m²</span>
+               </div>
+
+               <div v-if="property.currentRent" class="flex items-center gap-2 text-sm">
+                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                 </svg>
+                 <span class="font-semibold text-success">{{ formatCurrency(property.currentRent) }}/mois</span>
+               </div>
+             </div>
+
+             <!-- Status Badge -->
+             <div class="card-actions justify-end mt-3">
+               <div :class="getStatusBadgeClass(property.status)" class="badge badge-sm">
+                 {{ getStatusLabel(property.status) }}
+               </div>
+             </div>
+           </div>
+          </div>
+        </div>
+
+      <!-- Empty State -->
+     <div v-else-if="properties.length === 0" class="card bg-base-100 shadow-xl">
       <div class="card-body items-center text-center py-12">
-        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-16 h-6 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
         <h3 class="text-lg font-semibold mb-2">Aucun bien trouvé</h3>
@@ -434,6 +525,7 @@ const loading = ref(false)
 const showDialog = ref(false)
 const saving = ref(false)
 const editingProperty = ref(null)
+const viewMode = ref('cards')
 
 // Organiser les propriétés en hiérarchie (immeubles avec leurs appartements)
 const organizedProperties = computed(() => {

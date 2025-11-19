@@ -120,7 +120,7 @@
       <!-- Tabs -->
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-          <div role="tablist" class="tabs tabs-lifted">
+          <div role="tablist" class="tabs tabs-lifted gap-4">
             <input
               type="radio"
               name="tenant_tabs"
@@ -131,45 +131,125 @@
               @change="activeTab = 'info'"
             />
             <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-              <h3 class="text-xl font-bold mb-4">Informations personnelles</h3>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold">Informations personnelles</h3>
+                <button @click="toggleInfoEdit" class="btn btn-outline btn-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  {{ isEditingInfo ? 'Annuler' : 'Modifier' }}
+                </button>
+              </div>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-3">
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <!-- Prénom -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Prénom</span>
                     <span>{{ tenant.firstName }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Prénom *</span>
+                    </label>
+                    <input v-model="infoForm.firstName" type="text" class="input input-bordered w-full" required />
+                  </div>
+
+                  <!-- Nom -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Nom</span>
                     <span>{{ tenant.lastName }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Nom *</span>
+                    </label>
+                    <input v-model="infoForm.lastName" type="text" class="input input-bordered w-full" required />
+                  </div>
+
+                  <!-- Email -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Email</span>
                     <span>{{ tenant.email }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Email *</span>
+                    </label>
+                    <input v-model="infoForm.email" type="email" class="input input-bordered w-full" required />
+                  </div>
+
+                  <!-- Téléphone -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Téléphone</span>
                     <span>{{ tenant.phone }}</span>
+                  </div>
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Téléphone *</span>
+                    </label>
+                    <input v-model="infoForm.phone" type="tel" class="input input-bordered w-full" required />
                   </div>
                 </div>
 
                 <div class="space-y-3">
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <!-- Date de naissance -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Date de naissance</span>
                     <span>{{ formatDate(tenant.birthDate) }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Date de naissance</span>
+                    </label>
+                    <input v-model="infoForm.birthDate" type="date" class="input input-bordered w-full" />
+                  </div>
+
+                  <!-- Adresse -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Adresse</span>
                     <span>{{ tenant.address || 'N/A' }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Adresse</span>
+                    </label>
+                    <input v-model="infoForm.address" type="text" class="input input-bordered w-full" />
+                  </div>
+
+                  <!-- Profession -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Profession</span>
                     <span>{{ tenant.profession || 'N/A' }}</span>
                   </div>
-                  <div class="flex justify-between py-2 border-b border-base-300">
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Profession</span>
+                    </label>
+                    <input v-model="infoForm.profession" type="text" class="input input-bordered w-full" />
+                  </div>
+
+                  <!-- Revenu mensuel -->
+                  <div v-if="!isEditingInfo" class="flex justify-between py-2 border-b border-base-300">
                     <span class="font-semibold">Revenu mensuel</span>
                     <span>{{ formatCurrency(tenant.monthlyIncome) }}</span>
                   </div>
+                  <div v-else class="form-control">
+                    <label class="label">
+                      <span class="label-text font-semibold">Revenu mensuel (€)</span>
+                    </label>
+                    <input v-model.number="infoForm.monthlyIncome" type="number" min="0" step="0.01" class="input input-bordered w-full" />
+                  </div>
                 </div>
+              </div>
+
+              <!-- Edit Actions -->
+              <div v-if="isEditingInfo" class="flex justify-end gap-2 mt-6">
+                <button @click="toggleInfoEdit" class="btn btn-ghost">Annuler</button>
+                <button @click="saveInfoChanges" :disabled="saving" class="btn btn-primary">
+                  <span v-if="saving" class="loading loading-spinner loading-sm"></span>
+                  Enregistrer
+                </button>
               </div>
             </div>
 
@@ -199,7 +279,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="lease in leases" :key="lease.id">
+                    <tr v-for="lease in leases" :key="lease.id" class="h-6">
                       <td>{{ lease.Property?.name }}</td>
                       <td>{{ formatDate(lease.startDate) }}</td>
                       <td>{{ lease.endDate ? formatDate(lease.endDate) : 'En cours' }}</td>
@@ -438,7 +518,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import api from '@/services/api'
@@ -456,6 +536,7 @@ const showOccupancyModal = ref(false)
 const showEditLeaseModal = ref(false)
 const selectedLease = ref(null)
 const editingLease = ref(null)
+const isEditingInfo = ref(false)
 
 const leaseForm = ref({
   startDate: '',
@@ -465,6 +546,17 @@ const leaseForm = ref({
   numberOfOccupants: 1,
   status: 'actif',
   notes: ''
+})
+
+const infoForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  birthDate: '',
+  address: '',
+  profession: '',
+  monthlyIncome: null
 })
 
 const activeLease = computed(() => {
@@ -642,6 +734,50 @@ const deleteLease = async (lease) => {
   } catch (error) {
     console.error('Erreur suppression bail:', error)
     toast.error('Erreur lors de la suppression du bail')
+  }
+}
+
+const toggleInfoEdit = () => {
+  if (isEditingInfo.value) {
+    // Cancel editing - reset form
+    isEditingInfo.value = false
+  } else {
+    // Start editing - populate form with current data
+    Object.assign(infoForm, {
+      firstName: tenant.value.firstName,
+      lastName: tenant.value.lastName,
+      email: tenant.value.email,
+      phone: tenant.value.phone,
+      birthDate: tenant.value.birthDate ? tenant.value.birthDate.split('T')[0] : '',
+      address: tenant.value.address || '',
+      profession: tenant.value.profession || '',
+      monthlyIncome: tenant.value.monthlyIncome || null
+    })
+    isEditingInfo.value = true
+  }
+}
+
+const saveInfoChanges = async () => {
+  // Validate required fields
+  if (!infoForm.firstName || !infoForm.lastName || !infoForm.email || !infoForm.phone) {
+    toast.error('Veuillez remplir tous les champs obligatoires')
+    return
+  }
+
+  saving.value = true
+  try {
+    await api.put(`/api/tenants/${route.params.id}`, infoForm)
+    toast.success('Informations mises à jour avec succès')
+
+    // Reload tenant data
+    await loadTenant()
+
+    isEditingInfo.value = false
+  } catch (error) {
+    console.error('Error updating tenant info:', error)
+    toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour')
+  } finally {
+    saving.value = false
   }
 }
 

@@ -21,7 +21,7 @@
       </div>
 
       <!-- Tabs -->
-      <div class="tabs tabs-boxed mb-4 gap-1">
+      <div class="tabs tabs-boxed mb-4 gap-4">
         <a
           class="tab tab-lg"
           :class="{ 'tab-active': activeTab === 'history' }"

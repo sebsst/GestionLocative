@@ -2,13 +2,19 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold">Gestion des Baux</h1>
-      <div class="flex gap-2">
-        <button @click="loadLeases" class="btn btn-ghost btn-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
-      </div>
+       <div class="flex gap-2">
+         <button @click="showPropertyModal = true" class="btn btn-primary btn-sm gap-2">
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+           </svg>
+           Nouveau bien
+         </button>
+         <button @click="loadLeases" class="btn btn-ghost btn-sm">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+           </svg>
+         </button>
+       </div>
     </div>
 
     <!-- Loading -->
@@ -100,25 +106,25 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button @click="openRentPeriodModal" class="btn btn-primary btn-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div class="flex flex-col items-start">
-              <span>Gérer les montants</span>
-              <span class="text-xs opacity-70">Loyer et charges</span>
-            </div>
-          </button>
+           <button @click="openOccupancyModal" class="btn btn-primary btn-lg">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+             </svg>
+             <div class="flex flex-col items-start">
+               <span>Gérer les occupants</span>
+               <span class="text-xs opacity-70">Nombre et périodes</span>
+             </div>
+           </button>
 
-          <button @click="openOccupancyModal" class="btn btn-secondary btn-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <div class="flex flex-col items-start">
-              <span>Gérer les occupants</span>
-              <span class="text-xs opacity-70">Nombre et périodes</span>
-            </div>
-          </button>
+           <button @click="openRentPeriodModal" class="btn btn-secondary btn-lg">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+             <div class="flex flex-col items-start">
+               <span>Gérer les montants</span>
+               <span class="text-xs opacity-70">Loyer et charges</span>
+             </div>
+           </button>
 
           <button @click="generateRents" class="btn btn-accent btn-lg" :disabled="generatingRents">
             <span v-if="generatingRents" class="loading loading-spinner"></span>
@@ -133,7 +139,7 @@
         </div>
 
         <!-- Management Sections -->
-        <div class="tabs tabs-bordered">
+        <div class="tabs tabs-lifted gap-4">
           <a class="tab" :class="{ 'tab-active': activeSection === 'rent-periods' }" @click="activeSection = 'rent-periods'">
             Historique des montants
           </a>
@@ -163,7 +169,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="period in rentPeriods" :key="period.id">
+                  <tr v-for="period in rentPeriods" :key="period.id" class="h-6">
                     <td>
                       <div class="text-sm">
                         {{ formatDate(period.startDate) }}
@@ -209,7 +215,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="period in occupancyPeriods" :key="period.id">
+                  <tr v-for="period in occupancyPeriods" :key="period.id" class="h-6">
                     <td>
                       <div class="text-sm">
                         {{ formatDate(period.startDate) }}
@@ -262,7 +268,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="rent in rents" :key="rent.id">
+                  <tr v-for="rent in rents" :key="rent.id" class="h-6">
                     <td>{{ getMonthName(rent.month) }} {{ rent.year }}</td>
                     <td class="text-right font-semibold">{{ formatCurrency(rent.expectedAmount) }}</td>
                     <td class="text-right">{{ formatCurrency(rent.paidAmount || 0) }}</td>
@@ -302,20 +308,147 @@
       @updated="loadLeaseData"
     />
 
-    <LeaseOccupancyModal
-      v-if="selectedLease"
-      :show="showOccupancyModal"
-      :lease="selectedLease"
-      @close="closeOccupancyModal"
-      @updated="loadLeaseData"
-    />
-  </div>
-</template>
+     <LeaseOccupancyModal
+       v-if="selectedLease"
+       :show="showOccupancyModal"
+       :lease="selectedLease"
+       @close="closeOccupancyModal"
+       @updated="loadLeaseData"
+     />
+
+     <!-- New Property Modal -->
+     <Modal
+       v-model="showPropertyModal"
+       title="Nouveau bien"
+       size="md"
+       :hide-footer="true"
+     >
+       <div class="space-y-4">
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Nom du bien *</span>
+           </label>
+           <input
+             v-model="propertyForm.name"
+             type="text"
+             placeholder="Ex: Appartement 3 pièces, Maison centre-ville..."
+             class="input input-bordered w-full"
+             required
+           />
+         </div>
+
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Adresse *</span>
+           </label>
+           <input
+             v-model="propertyForm.address"
+             type="text"
+             placeholder="Numéro et rue"
+             class="input input-bordered w-full"
+             required
+           />
+         </div>
+
+         <div class="grid grid-cols-2 gap-4">
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Code postal *</span>
+             </label>
+             <input
+               v-model="propertyForm.postalCode"
+               type="text"
+               placeholder="75001"
+               class="input input-bordered w-full"
+               required
+             />
+           </div>
+
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Ville *</span>
+             </label>
+             <input
+               v-model="propertyForm.city"
+               type="text"
+               placeholder="Paris"
+               class="input input-bordered w-full"
+               required
+             />
+           </div>
+         </div>
+
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Type de bien</span>
+           </label>
+           <select v-model="propertyForm.type" class="select select-bordered w-full">
+             <option value="appartement">Appartement</option>
+             <option value="maison">Maison</option>
+             <option value="bureau">Bureau</option>
+             <option value="commerce">Commerce</option>
+             <option value="terrain">Terrain</option>
+             <option value="autre">Autre</option>
+           </select>
+         </div>
+
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Surface (m²)</span>
+           </label>
+           <input
+             v-model.number="propertyForm.surface"
+             type="number"
+             min="0"
+             step="0.01"
+             placeholder="75.5"
+             class="input input-bordered w-full"
+           />
+         </div>
+
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Nombre de pièces</span>
+           </label>
+           <input
+             v-model.number="propertyForm.rooms"
+             type="number"
+             min="0"
+             placeholder="3"
+             class="input input-bordered w-full"
+           />
+         </div>
+
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Description</span>
+           </label>
+           <textarea
+             v-model="propertyForm.description"
+             rows="3"
+             placeholder="Description détaillée du bien..."
+             class="textarea textarea-bordered w-full"
+           ></textarea>
+         </div>
+       </div>
+
+       <template #footer>
+         <div class="flex justify-end gap-2">
+           <button @click="closePropertyModal" class="btn">Annuler</button>
+           <button @click="createProperty" :disabled="creatingProperty" class="btn btn-primary">
+             {{ creatingProperty ? 'Création...' : 'Créer le bien' }}
+           </button>
+         </div>
+       </template>
+     </Modal>
+   </div>
+ </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, reactive } from 'vue';
 import { useToast } from 'vue-toastification';
 import api from '@/services/api';
+import Modal from '@/components/ui/Modal.vue';
 import LeaseRentPeriodModal from '@/components/LeaseRentPeriodModal.vue';
 import LeaseOccupancyModal from '@/components/LeaseOccupancyModal.vue';
 
@@ -332,9 +465,22 @@ const occupancyPeriods = ref([]);
 const rents = ref([]);
 const rentsFilter = ref({ year: new Date().getFullYear() });
 
+const propertyForm = reactive({
+  name: '',
+  address: '',
+  postalCode: '',
+  city: '',
+  type: 'appartement',
+  surface: null,
+  rooms: null,
+  description: ''
+});
+
 const showRentPeriodModal = ref(false);
 const showOccupancyModal = ref(false);
+const showPropertyModal = ref(false);
 const generatingRents = ref(false);
+const creatingProperty = ref(false);
 
 onMounted(() => {
   loadLeases();
@@ -452,6 +598,44 @@ const openOccupancyModal = () => {
 
 const closeOccupancyModal = () => {
   showOccupancyModal.value = false;
+};
+
+const closePropertyModal = () => {
+  showPropertyModal.value = false;
+  resetPropertyForm();
+};
+
+const resetPropertyForm = () => {
+  Object.assign(propertyForm, {
+    name: '',
+    address: '',
+    postalCode: '',
+    city: '',
+    type: 'appartement',
+    surface: null,
+    rooms: null,
+    description: ''
+  });
+};
+
+const createProperty = async () => {
+  if (!propertyForm.name || !propertyForm.address || !propertyForm.postalCode || !propertyForm.city) {
+    toast.error('Veuillez remplir tous les champs obligatoires');
+    return;
+  }
+
+  creatingProperty.value = true;
+  try {
+    await api.post('/api/properties', propertyForm);
+    toast.success('Bien créé avec succès');
+    closePropertyModal();
+    // Optionally reload leases if needed
+  } catch (error) {
+    console.error('Error creating property:', error);
+    toast.error(error.response?.data?.message || 'Erreur lors de la création du bien');
+  } finally {
+    creatingProperty.value = false;
+  }
 };
 
 const calculateDuration = (period) => {

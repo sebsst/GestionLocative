@@ -19,6 +19,20 @@
     @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
   }
 
+  /* Modal box avec padding réduit */
+  .modal-box {
+    @apply p-1;
+  }
+
+  /* Modal avec onglets - position fixe */
+  .modal-with-tabs .modal-box {
+    @apply max-h-[90vh] overflow-hidden;
+  }
+
+  .modal-with-tabs .modal-box > *:not(.tabs) {
+    @apply max-h-[calc(90vh-8rem)] overflow-y-auto;
+  }
+
   /* Badge avec padding horizontal global et bordures arrondies */
   .badge {
     padding-left: 0.5rem;

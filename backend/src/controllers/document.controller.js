@@ -1,8 +1,218 @@
-import { Tenant, Lease, Property, Rent } from '../models/index.js';
+import { Document, Property, Tenant, Lease, Rent } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import * as pdfService from '../services/pdf.service.js';
 import * as emailService from '../services/email.service.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Get all documents for a property
+ */
+export const getPropertyDocuments = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+
+    const documents = await Document.findAll({
+      where: { propertyId },
+      include: [
+        {
+          model: Property,
+          attributes: ['id', 'name']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: documents
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get a single document
+ */
+export const getDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const document = await Document.findByPk(id, {
+      include: [
+        {
+          model: Property,
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
+    if (!document) {
+      throw new AppError('Document non trouvé', 404);
+    }
+
+    res.json({
+      success: true,
+      data: document
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload a document for a property
+ */
+export const uploadDocument = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+    const { name, type, description, url } = req.body;
+
+    if (!req.file && !url) {
+      throw new AppError('Aucun fichier ou URL fourni', 400);
+    }
+
+    // Verify property exists
+    const property = await Property.findByPk(propertyId);
+    if (!property) {
+      throw new AppError('Bien non trouvé', 404);
+    }
+
+    const document = await Document.create({
+      propertyId,
+      name: name || (req.file ? req.file.originalname : 'Lien externe'),
+      originalName: req.file ? req.file.originalname : null,
+      fileName: req.file ? req.file.filename : null,
+      filePath: req.file ? req.file.path : null,
+      fileSize: req.file ? req.file.size : null,
+      mimeType: req.file ? req.file.mimetype : null,
+      type: type || 'autre',
+      description,
+      url
+    });
+
+    const createdDocument = await Document.findByPk(document.id, {
+      include: [
+        {
+          model: Property,
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      data: createdDocument
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update document metadata
+ */
+export const updateDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, type, description, url } = req.body;
+
+    const document = await Document.findByPk(id);
+    if (!document) {
+      throw new AppError('Document non trouvé', 404);
+    }
+
+    await document.update({
+      name,
+      type,
+      description,
+      url
+    });
+
+    const updatedDocument = await Document.findByPk(id, {
+      include: [
+        {
+          model: Property,
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: updatedDocument
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Download a document
+ */
+export const downloadDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const document = await Document.findByPk(id);
+    if (!document) {
+      throw new AppError('Document non trouvé', 404);
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(document.filePath)) {
+      throw new AppError('Fichier non trouvé sur le serveur', 404);
+    }
+
+    // Set headers for download
+    res.setHeader('Content-Type', document.mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
+
+    // Stream the file
+    const fileStream = fs.createReadStream(document.filePath);
+    fileStream.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete a document
+ */
+export const deleteDocument = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const document = await Document.findByPk(id);
+    if (!document) {
+      throw new AppError('Document non trouvé', 404);
+    }
+
+    // Delete file from filesystem
+    if (fs.existsSync(document.filePath)) {
+      fs.unlinkSync(document.filePath);
+    }
+
+    // Delete database record
+    await document.destroy();
+
+    res.json({
+      success: true,
+      message: 'Document supprimé avec succès'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Generate rent reminder PDF
+ */
 export const generateRentReminder = async (req, res, next) => {
   try {
     const { rentId } = req.params;
@@ -38,6 +248,9 @@ export const generateRentReminder = async (req, res, next) => {
   }
 };
 
+/**
+ * Send rent reminder email
+ */
 export const sendRentReminder = async (req, res, next) => {
   try {
     const { rentId } = req.params;
@@ -75,6 +288,9 @@ export const sendRentReminder = async (req, res, next) => {
   }
 };
 
+/**
+ * Generate late rent notice PDF
+ */
 export const generateLateRentNotice = async (req, res, next) => {
   try {
     const { rentId } = req.params;
@@ -110,6 +326,9 @@ export const generateLateRentNotice = async (req, res, next) => {
   }
 };
 
+/**
+ * Send late rent notice email
+ */
 export const sendLateRentNotice = async (req, res, next) => {
   try {
     const { rentId } = req.params;
@@ -164,6 +383,9 @@ export const sendLateRentNotice = async (req, res, next) => {
   }
 };
 
+/**
+ * Generate lease contract PDF
+ */
 export const generateLeaseContract = async (req, res, next) => {
   try {
     const { leaseId } = req.params;

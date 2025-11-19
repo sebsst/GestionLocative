@@ -6,7 +6,8 @@ import {
   createRegularization,
   updateRegularization,
   deleteRegularization,
-  getRegularizationStats
+  getRegularizationStats,
+  generateRegularizationPDF
 } from '../controllers/chargeRegularization.controller.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -24,6 +25,7 @@ router.post('/calculate', calculateRegularization);
 // CRUD operations
 router.get('/', getAllRegularizations);
 router.get('/:id', getRegularizationById);
+router.get('/:id/pdf', generateRegularizationPDF);
 router.post('/', createRegularization);
 router.put('/:id', updateRegularization);
 router.delete('/:id', deleteRegularization);

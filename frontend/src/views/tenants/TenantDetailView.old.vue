@@ -22,7 +22,7 @@
       <div class="card">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-2xl bg-gradient-to-br from-green-600 to-green-700 shadow-sm">
+            <div class="w-16 h-6 rounded-lg flex items-center justify-center text-white font-bold text-2xl bg-gradient-to-br from-green-600 to-green-700 shadow-sm">
               {{ tenant.firstName.charAt(0).toUpperCase() }}{{ tenant.lastName.charAt(0).toUpperCase() }}
             </div>
             <div>
@@ -138,7 +138,7 @@
       </div>
 
       <div v-else class="card text-center py-12">
-        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-16 h-6 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Aucun bail</h3>

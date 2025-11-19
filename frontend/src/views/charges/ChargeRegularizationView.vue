@@ -173,7 +173,7 @@
     <!-- Empty state -->
     <div v-else class="card bg-base-100 shadow-xl">
       <div class="card-body text-center py-12">
-        <svg class="w-16 h-16 mx-auto text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-16 h-6 mx-auto text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <p class="text-base-content/60">Aucune régularisation trouvée</p>
@@ -679,9 +679,29 @@ const markAsRefunded = async (id) => {
   }
 }
 
-const generatePDF = (reg) => {
-  toast.info('La génération PDF sera implémentée prochainement')
-  // TODO: Implement PDF generation
+const generatePDF = async (reg) => {
+  try {
+    const response = await api.get(`/api/charge-regularizations/${reg.id}/pdf`, {
+      responseType: 'blob'
+    });
+
+    // Create blob link to download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `decompte-charges-${reg.year}-${reg.id.slice(-6)}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    toast.success('PDF généré avec succès');
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    toast.error('Erreur lors de la génération du PDF');
+  }
 }
 
 const closeCalculateDialog = () => {

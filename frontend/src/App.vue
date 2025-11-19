@@ -49,7 +49,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 .main-content {
   flex: 1;
-  padding: 2rem;
+  padding: 1rem 2rem 2rem 2rem;
   overflow-y: auto;
   background-color: oklch(var(--b2));
   color: oklch(var(--bc));

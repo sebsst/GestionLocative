@@ -109,9 +109,9 @@
       <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
 
-    <!-- Table -->
-    <div v-else-if="works.length > 0" class="card bg-base-100 shadow-xl overflow-hidden">
-      <div class="overflow-x-auto">
+     <!-- Table -->
+     <div v-else-if="works.length > 0" class="card bg-base-100 shadow-xl">
+       <div class="overflow-x-auto max-h-96">
         <table class="table table-zebra">
           <thead class="bg-base-200">
             <tr class="border-b-2 border-base-300">
@@ -119,27 +119,27 @@
               <th class="border-r border-base-300">Nature</th>
               <th class="text-center border-r border-base-300">Type</th>
               <th class="border-r border-base-300">Artisan</th>
-              <th class="text-right border-r border-base-300">Montant</th>
-              <th class="border-r border-base-300">Date</th>
-              <th class="text-center border-r border-base-300">Statut</th>
-              <th class="text-center">Actions</th>
+               <th class="text-right border-r border-base-300 pr-4">Montant</th>
+               <th class="border-r border-base-300 pl-4">Date</th>
+               <th class="text-center border-r border-base-300">Statut</th>
+               <th class="text-center w-32">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="work in works" :key="work.id" class="hover">
-              <td>
-                <div class="font-medium">
-                  {{ work.Property?.name }}
-                </div>
-              </td>
-              <td>
-                <div class="text-sm">
-                  {{ work.nature }}
-                </div>
-                <div v-if="work.description" class="text-xs opacity-60 mt-1">
-                  {{ work.description.substring(0, 50) }}{{ work.description.length > 50 ? '...' : '' }}
-                </div>
-              </td>
+           <tbody>
+             <tr v-for="work in works" :key="work.id" class="hover h-6 py-2">
+               <td class="py-3 px-2">
+                 <div class="font-medium">
+                   {{ work.Property?.name }}
+                 </div>
+               </td>
+               <td class="py-3 px-2">
+                 <div class="text-sm">
+                   {{ work.nature }}
+                 </div>
+                 <div v-if="work.description" class="text-xs opacity-60 mt-1">
+                   {{ work.description.substring(0, 50) }}{{ work.description.length > 50 ? '...' : '' }}
+                 </div>
+               </td>
               <td class="text-center">
                 <div
                   :class="getTypeBadgeClass(work.type)"
@@ -148,24 +148,24 @@
                   {{ getTypeLabel(work.type) }}
                 </div>
               </td>
-              <td>
-                <div class="text-sm">
-                  {{ work.Artisan?.name || '-' }}
-                </div>
-                <div v-if="work.Artisan?.company" class="text-xs opacity-60">
-                  {{ work.Artisan.company }}
-                </div>
-              </td>
-              <td class="text-right">
-                <div class="text-sm font-medium">
-                  {{ formatCurrency(work.amount || work.estimatedAmount) }}
-                </div>
-              </td>
-              <td>
-                <div class="text-sm">
-                  {{ formatDate(work.workDate || work.estimatedDate) }}
-                </div>
-              </td>
+               <td class="py-3 px-2">
+                 <div class="text-sm">
+                   {{ work.Artisan?.name || '-' }}
+                 </div>
+                 <div v-if="work.Artisan?.company" class="text-xs opacity-60">
+                   {{ work.Artisan.company }}
+                 </div>
+               </td>
+               <td class="text-right pr-4">
+                 <div class="text-sm font-medium">
+                   {{ formatCurrency(work.amount || work.estimatedAmount) }}
+                 </div>
+               </td>
+               <td class="pl-4">
+                 <div class="text-sm">
+                   {{ formatDate(work.workDate || work.estimatedDate) }}
+                 </div>
+               </td>
               <td class="text-center">
                 <div
                   :class="getStatusBadgeClass(work.status)"
@@ -173,13 +173,13 @@
                 >
                   {{ getStatusLabel(work.status) }}
                 </div>
-              </td>
-              <td>
-                <div class="flex items-center justify-center gap-2">
-                   <button
-                    @click="editWork(work)"
-                    class="btn btn-ghost btn-xs text-primary"
-                    title="Modifier"                  >
+               </td>
+               <td class="py-3 px-2">
+                  <div class="flex items-center justify-center gap-2">
+                    <button
+                     @click="editWork(work)"
+                     class="btn btn-ghost btn-xs text-primary"
+                     title="Modifier">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -204,7 +204,7 @@
     <!-- Empty State -->
     <div v-else class="card bg-base-100 shadow-xl">
       <div class="card-body items-center text-center py-12">
-        <svg class="w-16 h-16 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-16 h-6 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -214,216 +214,223 @@
     </div>
 
     <!-- Dialog Create/Edit Work -->
-    <Modal
-      v-model="showDialog"
-      :title="editingWork ? 'Modifier les travaux' : 'Nouveaux travaux'"
-      size="lg"
-      :hide-footer="true"
-    >
-      <div class="space-y-4">
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Bien *</span>
-          </label>
-          <select v-model="workForm.propertyId" class="select select-bordered w-full" required>
-            <option value="">Sélectionnez un bien</option>
-            <option v-for="property in properties" :key="property.id" :value="property.id">
-              {{ property.name }}
-            </option>
-          </select>
-        </div>
+     <Modal
+       v-model="showDialog"
+       :title="editingWork ? 'Modifier les travaux' : 'Nouveaux travaux'"
+       size="md"
+       :hide-footer="true"
+     >
+      <div class="space-y-3">
+         <!-- Basic Information -->
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Bien *</span>
+             </label>
+             <select v-model="workForm.propertyId" class="select select-bordered w-full" required>
+               <option value="">Sélectionnez un bien</option>
+               <option v-for="property in properties" :key="property.id" :value="property.id">
+                 {{ property.name }}
+               </option>
+             </select>
+           </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Type de travaux *</span>
-          </label>
-          <select v-model="workForm.type" class="select select-bordered w-full" required>
-            <option value="">Sélectionnez un type</option>
-            <option v-for="type in workTypes" :key="type.value" :value="type.value">
-              {{ type.label }}
-            </option>
-          </select>
-        </div>
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Type de travaux *</span>
+             </label>
+             <select v-model="workForm.type" class="select select-bordered w-full" required>
+               <option value="">Sélectionnez un type</option>
+               <option v-for="type in workTypes" :key="type.value" :value="type.value">
+                 {{ type.label }}
+               </option>
+             </select>
+           </div>
+         </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Nature des travaux *</span>
-          </label>
-          <input
-            v-model="workForm.nature"
-            type="text"
-            placeholder="Nature des travaux"
-            class="input input-bordered w-full"
-            required
-          />
-        </div>
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Nature des travaux *</span>
+           </label>
+           <input
+             v-model="workForm.nature"
+             type="text"
+             placeholder="Nature des travaux"
+             class="input input-bordered w-full"
+             required
+           />
+         </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Description</span>
-          </label>
-          <textarea
-            v-model="workForm.description"
-            rows="3"
-            placeholder="Description détaillée des travaux"
-            class="textarea textarea-bordered w-full"
-          ></textarea>
-        </div>
+         <div class="form-control">
+           <label class="label">
+             <span class="label-text">Description</span>
+           </label>
+           <textarea
+             v-model="workForm.description"
+             rows="2"
+             placeholder="Description détaillée des travaux"
+             class="textarea textarea-bordered w-full"
+           ></textarea>
+         </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Artisan</span>
-          </label>
-          <div class="flex gap-2">
-            <select v-model="workForm.artisanId" class="select select-bordered flex-1">
-              <option value="">Sélectionnez un artisan</option>
-              <option v-for="artisan in artisans" :key="artisan.id" :value="artisan.id">
-                {{ artisan.name }}{{ artisan.company ? ` - ${artisan.company}` : '' }}
-              </option>
-            </select>
-            <button
-              @click="showArtisanDialog = true"
-              class="btn btn-primary btn-square"
-              title="Créer un nouvel artisan"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-          </div>
-        </div>
+         <!-- Artisan and Financial Info -->
+         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+           <div class="form-control md:col-span-2">
+             <label class="label">
+               <span class="label-text">Artisan</span>
+             </label>
+             <div class="flex gap-2">
+               <select v-model="workForm.artisanId" class="select select-bordered flex-1">
+                 <option value="">Sélectionnez un artisan</option>
+                 <option v-for="artisan in artisans" :key="artisan.id" :value="artisan.id">
+                   {{ artisan.name }}{{ artisan.company ? ` - ${artisan.company}` : '' }}
+                 </option>
+               </select>
+               <button
+                 @click="showArtisanDialog = true"
+                 class="btn btn-primary btn-square"
+                 title="Créer un nouvel artisan"
+               >
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                 </svg>
+               </button>
+             </div>
+           </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Montant estimé (€)</span>
-            </label>
-            <input
-              v-model.number="workForm.estimatedAmount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="1000.00"
-              class="input input-bordered w-full"
-            />
-          </div>
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Montant estimé (€)</span>
+             </label>
+             <input
+               v-model.number="workForm.estimatedAmount"
+               type="number"
+               min="0"
+               step="0.01"
+               placeholder="1000.00"
+               class="input input-bordered w-full"
+             />
+           </div>
+         </div>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Date prévue</span>
-            </label>
-            <input
-              v-model="workForm.estimatedDate"
-              type="date"
-              class="input input-bordered w-full"
-            />
-          </div>
-        </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Date prévue</span>
+             </label>
+             <input
+               v-model="workForm.estimatedDate"
+               type="date"
+               class="input input-bordered w-full"
+             />
+           </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Statut *</span>
-          </label>
-          <select v-model="workForm.status" class="select select-bordered w-full" required>
-            <option value="prevu">Prévu</option>
-            <option value="en_cours">En cours</option>
-            <option value="termine">Terminé</option>
-            <option value="paye">Payé</option>
-            <option value="annule">Annulé</option>
-          </select>
-        </div>
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Statut *</span>
+             </label>
+             <select v-model="workForm.status" class="select select-bordered w-full" required>
+               <option value="prevu">Prévu</option>
+               <option value="en_cours">En cours</option>
+               <option value="termine">Terminé</option>
+               <option value="paye">Payé</option>
+               <option value="annule">Annulé</option>
+             </select>
+           </div>
+         </div>
 
-        <div class="space-y-2">
-          <div class="form-control">
-            <label class="label cursor-pointer justify-start gap-2">
-              <input
-                type="checkbox"
-                id="isCommon"
-                v-model="workForm.isCommon"
-                class="checkbox"
-              />
-              <span class="label-text">Travaux communs</span>
-            </label>
-          </div>
+         <!-- Options -->
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+           <div class="form-control">
+             <label class="label cursor-pointer justify-start gap-2">
+               <input
+                 type="checkbox"
+                 id="isCommon"
+                 v-model="workForm.isCommon"
+                 class="checkbox"
+               />
+               <span class="label-text">Travaux communs</span>
+             </label>
+           </div>
 
-          <div class="form-control">
-            <label class="label cursor-pointer justify-start gap-2">
-              <input
-                type="checkbox"
-                id="isFiscalDeductible"
-                v-model="workForm.isFiscalDeductible"
-                class="checkbox checkbox-primary"
-              />
-              <span class="label-text font-semibold">Éligible à la déclaration fiscale (case 224)</span>
-            </label>
-          </div>
-        </div>
+           <div class="form-control">
+             <label class="label cursor-pointer justify-start gap-2">
+               <input
+                 type="checkbox"
+                 id="isFiscalDeductible"
+                 v-model="workForm.isFiscalDeductible"
+                 class="checkbox checkbox-primary"
+               />
+               <span class="label-text font-semibold">Éligible à la déclaration fiscale</span>
+             </label>
+           </div>
+         </div>
 
-        <div class="divider">Documents</div>
+         <div class="divider">Documents</div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Devis (plusieurs fichiers possibles)</span>
-            </label>
-            <input
-              type="file"
-              @change="handleQuoteUpload"
-              accept=".pdf,.jpg,.jpeg,.png"
-              multiple
-              class="file-input file-input-bordered w-full"
-            />
-            <div v-if="workForm.quoteFiles.length > 0" class="mt-2 space-y-1">
-              <div v-for="(file, index) in workForm.quoteFiles" :key="index" class="flex items-center gap-2">
-                <span class="label-text-alt text-success">✓ {{ file.name }}</span>
-                <button
-                  type="button"
-                  @click="removeQuoteFile(index)"
-                  class="btn btn-ghost btn-xs text-error"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <div v-if="workForm.existingQuotes && workForm.existingQuotes.length > 0" class="mt-2 space-y-1">
-              <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
-              <div v-for="(quote, index) in workForm.existingQuotes" :key="index" class="flex items-center gap-2">
-                <span class="label-text-alt">📄 {{ quote }}</span>
-              </div>
-            </div>
-          </div>
+         <div class="space-y-3">
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Devis (plusieurs fichiers possibles)</span>
+             </label>
+             <input
+               type="file"
+               @change="handleQuoteUpload"
+               accept=".pdf,.jpg,.jpeg,.png"
+               multiple
+               class="file-input file-input-bordered w-full"
+             />
+             <div v-if="workForm.quoteFiles.length > 0" class="mt-2 space-y-1">
+               <div v-for="(file, index) in workForm.quoteFiles" :key="index" class="flex items-center gap-2">
+                 <span class="label-text-alt text-success">✓ {{ file.name }}</span>
+                 <button
+                   type="button"
+                   @click="removeQuoteFile(index)"
+                   class="btn btn-ghost btn-xs text-error"
+                 >
+                   ✕
+                 </button>
+               </div>
+             </div>
+             <div v-if="workForm.existingQuotes && workForm.existingQuotes.length > 0" class="mt-2 space-y-1">
+               <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
+               <div v-for="(quote, index) in workForm.existingQuotes" :key="index" class="flex items-center gap-2">
+                 <span class="label-text-alt">📄 {{ quote }}</span>
+               </div>
+             </div>
+           </div>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Factures (plusieurs fichiers possibles)</span>
-            </label>
-            <input
-              type="file"
-              @change="handleInvoiceUpload"
-              accept=".pdf,.jpg,.jpeg,.png"
-              multiple
-              class="file-input file-input-bordered w-full"
-            />
-            <div v-if="workForm.invoiceFiles.length > 0" class="mt-2 space-y-1">
-              <div v-for="(file, index) in workForm.invoiceFiles" :key="index" class="flex items-center gap-2">
-                <span class="label-text-alt text-success">✓ {{ file.name }}</span>
-                <button
-                  type="button"
-                  @click="removeInvoiceFile(index)"
-                  class="btn btn-ghost btn-xs text-error"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <div v-if="workForm.existingInvoices && workForm.existingInvoices.length > 0" class="mt-2 space-y-1">
-              <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
-              <div v-for="(invoice, index) in workForm.existingInvoices" :key="index" class="flex items-center gap-2">
-                <span class="label-text-alt">📄 {{ invoice }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+           <div class="form-control">
+             <label class="label">
+               <span class="label-text">Factures (plusieurs fichiers possibles)</span>
+             </label>
+             <input
+               type="file"
+               @change="handleInvoiceUpload"
+               accept=".pdf,.jpg,.jpeg,.png"
+               multiple
+               class="file-input file-input-bordered w-full"
+             />
+             <div v-if="workForm.invoiceFiles.length > 0" class="mt-2 space-y-1">
+               <div v-for="(file, index) in workForm.invoiceFiles" :key="index" class="flex items-center gap-2">
+                 <span class="label-text-alt text-success">✓ {{ file.name }}</span>
+                 <button
+                   type="button"
+                   @click="removeInvoiceFile(index)"
+                   class="btn btn-ghost btn-xs text-error"
+                 >
+                   ✕
+                 </button>
+               </div>
+             </div>
+             <div v-if="workForm.existingInvoices && workForm.existingInvoices.length > 0" class="mt-2 space-y-1">
+               <div class="text-xs font-semibold opacity-70">Fichiers existants :</div>
+               <div v-for="(invoice, index) in workForm.existingInvoices" :key="index" class="flex items-center gap-2">
+                 <span class="label-text-alt">📄 {{ invoice }}</span>
+               </div>
+             </div>
+           </div>
+         </div>
       </div>
 
       <template #footer>
@@ -628,7 +635,7 @@
                 </div>
               </td>
               <td>
-                <div class="flex items-center justify-center gap-2">
+                 <div class="flex items-center justify-center gap-3">
                   <button
                     @click="editArtisan(artisan)"
                     class="btn btn-ghost btn-xs text-primary"
