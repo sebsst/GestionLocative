@@ -254,60 +254,53 @@
            v-for="property in properties"
            :key="property.id"
            @click="viewProperty(property)"
-           class="card bg-base-100 shadow-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105"
+           class="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-base-200 group"
          >
-           <div class="card-body p-4">
-             <!-- Property Header -->
-             <div class="flex items-start justify-between mb-3">
-               <div class="flex items-center gap-3">
-                 <div class="avatar placeholder">
-                   <div :class="property.type === 'immeuble' ? 'bg-accent text-accent-content' : 'bg-primary text-primary-content'" class="rounded-lg w-10 flex items-center justify-center">
-                     <svg v-if="property.type === 'immeuble'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                     </svg>
-                     <span v-else class="text-sm font-bold">{{ property.name.charAt(0).toUpperCase() }}</span>
-                   </div>
-                 </div>
-                 <div>
-                   <h3 class="card-title text-base leading-tight">{{ property.name }}</h3>
-                   <div class="badge badge-info badge-xs mt-1">{{ formatPropertyType(property.type) }}</div>
-                 </div>
+           <div class="card-body p-3">
+             <!-- Header: Status & Type -->
+             <div class="flex justify-between items-start mb-1">
+               <div class="badge badge-sm" :class="getStatusBadgeClass(property.status)">
+                 {{ getStatusLabel(property.status) }}
                </div>
-               <div v-if="property.type === 'immeuble' && property.apartments?.length" class="badge badge-sm badge-ghost">
-                 {{ property.apartments.length }} appt{{ property.apartments.length > 1 ? 's' : '' }}
+               <div class="text-[10px] font-medium text-base-content/60 uppercase tracking-wider">
+                 {{ formatPropertyType(property.type) }}
                </div>
              </div>
 
-             <!-- Property Details -->
-             <div class="space-y-2">
-               <div class="flex items-center gap-2 text-sm">
-                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <!-- Title & Address -->
+             <div class="mb-2">
+               <h3 class="card-title text-base font-bold truncate block leading-tight" :title="property.name">
+                 {{ property.name }}
+               </h3>
+               <p class="text-xs text-base-content/70 truncate flex items-center gap-1 mt-0.5">
+                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                  </svg>
-                 <span class="truncate">{{ property.address }}, {{ property.city }}</span>
-               </div>
-
-               <div v-if="property.surface" class="flex items-center gap-2 text-sm">
-                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                 </svg>
-                 <span>{{ property.surface }} m²</span>
-               </div>
-
-               <div v-if="property.currentRent" class="flex items-center gap-2 text-sm">
-                 <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                 </svg>
-                 <span class="font-semibold text-success">{{ formatCurrency(property.currentRent) }}/mois</span>
-               </div>
+                 {{ property.city }} ({{ property.postalCode }})
+               </p>
              </div>
 
-             <!-- Status Badge -->
-             <div class="card-actions justify-end mt-3">
-               <div :class="getStatusBadgeClass(property.status)" class="badge badge-sm">
-                 {{ getStatusLabel(property.status) }}
+             <!-- Key Metrics Grid -->
+             <div class="grid grid-cols-2 gap-2 py-2 border-t border-base-100">
+               <div class="flex flex-col">
+                 <span class="text-[10px] text-base-content/50">Surface</span>
+                 <span class="font-semibold text-xs">{{ property.surface ? property.surface + ' m²' : '-' }}</span>
                </div>
+               <div class="flex flex-col">
+                 <span class="text-[10px] text-base-content/50">Loyer</span>
+                 <span class="font-semibold text-xs text-primary">{{ property.currentRent ? formatCurrency(property.currentRent) : '-' }}</span>
+               </div>
+             </div>
+             
+             <!-- Footer: Action -->
+             <div class="card-actions justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="btn btn-xs btn-ghost text-primary gap-1">
+                  Voir le détail
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
              </div>
            </div>
           </div>

@@ -77,8 +77,18 @@
        </div>
 
         <!-- Management Actions -->
-        <div v-if="leases.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button @click="openOccupancyModal()" class="btn btn-primary btn-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button @click="openCreateLeaseModal" class="btn btn-primary btn-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <div class="flex flex-col items-start">
+              <span>Créer un bail</span>
+              <span class="text-xs opacity-70">Nouveau contrat</span>
+            </div>
+          </button>
+
+          <button v-if="leases.length > 0" @click="openOccupancyModal()" class="btn btn-primary btn-lg">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -88,7 +98,7 @@
             </div>
           </button>
 
-          <button @click="openRentPeriodModal()" class="btn btn-secondary btn-lg">
+          <button v-if="leases.length > 0" @click="openRentPeriodModal()" class="btn btn-secondary btn-lg">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -98,16 +108,16 @@
             </div>
           </button>
 
-         <button @click="generateRents" class="btn btn-accent btn-lg" :disabled="generatingRents">
-           <span v-if="generatingRents" class="loading loading-spinner"></span>
-           <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-           </svg>
-           <div class="flex flex-col items-start">
-             <span>Générer loyers</span>
-             <span class="text-xs opacity-70">Mois en cours</span>
-           </div>
-         </button>
+          <button v-if="leases.length > 0" @click="generateRents" class="btn btn-accent btn-lg" :disabled="generatingRents">
+            <span v-if="generatingRents" class="loading loading-spinner"></span>
+            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <div class="flex flex-col items-start">
+              <span>Générer loyers</span>
+              <span class="text-xs opacity-70">Mois en cours</span>
+            </div>
+          </button>
         </div>
 
 
@@ -365,12 +375,6 @@
           <div v-if="activeTab === 'leases'" class="p-6 space-y-4">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold">Historique des baux</h3>
-                <button @click="openCreateLeaseModal" class="btn btn-primary btn-sm">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Créer un bail
-                </button>
               </div>
 
               <div v-if="leases.length > 0" class="overflow-x-auto">
@@ -392,8 +396,8 @@
                       <td>{{ lease.endDate ? formatDate(lease.endDate) : 'En cours' }}</td>
                       <td>{{ formatCurrency(lease.monthlyRent) }}</td>
                       <td>
-                        <div :class="lease.status === 'actif' ? 'badge-success' : 'badge-error'" class="badge">
-                          {{ lease.status }}
+                        <div :class="getLeaseStatusBadgeClass(lease.status)" class="badge">
+                          {{ getLeaseStatusLabel(lease.status) }}
                         </div>
                       </td>
                       <td>
@@ -411,6 +415,11 @@
                           <button @click="editLease(lease)" class="btn btn-ghost btn-xs btn-square" title="Modifier le bail">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button v-if="lease.status === 'actif'" @click="openEndLeaseModal(lease)" class="btn btn-ghost btn-xs btn-square text-warning" title="Mettre fin au bail">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </button>
                           <button @click="deleteLease(lease)" class="btn btn-ghost btn-xs btn-square text-error" title="Supprimer le bail">
@@ -602,127 +611,156 @@
     />
 
     <!-- Edit Lease Modal -->
-    <div v-if="showEditLeaseModal" @click.self="closeEditLeaseModal" class="modal modal-open">
-      <div class="modal-box max-w-2xl">
-        <button @click="closeEditLeaseModal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        <h3 class="font-bold text-lg mb-4">{{ editingLease ? 'Modifier le bail' : 'Créer un nouveau bail' }}</h3>
-
-        <form @submit.prevent="saveLease" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control col-span-2">
-              <label class="label">
-                <span class="label-text">Locataire principal *</span>
-              </label>
-              <select
-                v-model="leaseForm.tenantId"
-                class="select select-bordered"
-                required
-              >
-                <option value="">Sélectionner un locataire principal</option>
-                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                  {{ tenant.firstName }} {{ tenant.lastName }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Date de début *</span>
-              </label>
-              <input
-                v-model="leaseForm.startDate"
-                type="date"
-                class="input input-bordered"
-                required
-              />
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Date de fin</span>
-              </label>
-              <input
-                v-model="leaseForm.endDate"
-                type="date"
-                class="input input-bordered"
-              />
-              <label class="label">
-                <span class="label-text-alt">Laisser vide si en cours</span>
-              </label>
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Loyer mensuel (€) *</span>
-              </label>
-              <input
-                v-model.number="leaseForm.monthlyRent"
-                type="number"
-                step="0.01"
-                class="input input-bordered"
-                required
-              />
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Dépôt de garantie (€)</span>
-              </label>
-              <input
-                v-model.number="leaseForm.deposit"
-                type="number"
-                step="0.01"
-                class="input input-bordered"
-              />
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Nombre d'occupants</span>
-              </label>
-              <input
-                v-model.number="leaseForm.numberOfOccupants"
-                type="number"
-                min="1"
-                class="input input-bordered"
-              />
-            </div>
-
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Statut</span>
-              </label>
-              <select v-model="leaseForm.status" class="select select-bordered">
-                <option value="actif">Actif</option>
-                <option value="termine">Terminé</option>
-                <option value="resilie">Résilié</option>
-              </select>
-            </div>
+    <Modal
+      :model-value="showEditLeaseModal"
+      @update:model-value="closeEditLeaseModal"
+      :title="editingLease ? 'Modifier le bail' : 'Créer un nouveau bail'"
+      size="md"
+      :show-close="true"
+      :hide-footer="true"
+    >
+      <form @submit.prevent="saveLease" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-control col-span-2">
+            <label class="label">
+              <span class="label-text">Locataire principal *</span>
+            </label>
+            <select
+              v-model="leaseForm.tenantId"
+              class="select select-bordered"
+              required
+            >
+              <option value="">Sélectionner un locataire principal</option>
+              <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                {{ tenant.firstName }} {{ tenant.lastName }}
+              </option>
+            </select>
           </div>
 
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Notes</span>
+              <span class="label-text">Date de début *</span>
             </label>
-            <textarea
-              v-model="leaseForm.notes"
-              class="textarea textarea-bordered"
-              rows="3"
-            ></textarea>
+            <input
+              v-model="leaseForm.startDate"
+              type="date"
+              class="input input-bordered"
+              required
+            />
           </div>
 
-          <div class="modal-action">
-            <button type="button" @click="closeEditLeaseModal" class="btn btn-ghost">
-              Annuler
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <span v-if="saving" class="loading loading-spinner loading-sm"></span>
-              {{ editingLease ? 'Enregistrer' : 'Créer le bail' }}
-            </button>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Date de fin</span>
+            </label>
+            <input
+              v-model="leaseForm.endDate"
+              type="date"
+              class="input input-bordered"
+            />
+            <label class="label">
+              <span class="label-text-alt">Laisser vide si en cours</span>
+            </label>
           </div>
-        </form>
-       </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Loyer mensuel (€) *</span>
+            </label>
+            <input
+              v-model.number="leaseForm.monthlyRent"
+              type="number"
+              step="0.01"
+              class="input input-bordered"
+              required
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Dépôt de garantie (€)</span>
+            </label>
+            <input
+              v-model.number="leaseForm.deposit"
+              type="number"
+              step="0.01"
+              class="input input-bordered"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Nombre d'occupants</span>
+            </label>
+            <input
+              v-model.number="leaseForm.numberOfOccupants"
+              type="number"
+              min="1"
+              class="input input-bordered"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Statut</span>
+            </label>
+            <select v-model="leaseForm.status" class="select select-bordered">
+              <option value="actif">Actif</option>
+              <option value="termine">Terminé</option>
+              <option value="resilie">Résilié</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Notes</span>
+          </label>
+          <textarea
+            v-model="leaseForm.notes"
+            class="textarea textarea-bordered"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="modal-action">
+          <button type="button" @click="closeEditLeaseModal" class="btn btn-ghost">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            <span v-if="saving" class="loading loading-spinner loading-sm"></span>
+            {{ editingLease ? 'Enregistrer' : 'Créer le bail' }}
+          </button>
+        </div>
+      </form>
+    </Modal>
+
+    <!-- End Lease Modal -->
+    <Modal
+      :model-value="showEndLeaseModal"
+      @update:model-value="closeEndLeaseModal"
+      title="Mettre fin au bail"
+      size="sm"
+      :show-close="true"
+      :hide-footer="true"
+    >
+      <p class="py-4">Veuillez sélectionner la date de fin du bail pour {{ selectedLease?.Tenant?.firstName }} {{ selectedLease?.Tenant?.lastName }}</p>
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Date de fin</span>
+        </label>
+        <input type="date" v-model="endLeaseDate" class="input input-bordered" />
       </div>
+
+      <div class="modal-action">
+        <button @click="closeEndLeaseModal" class="btn">Annuler</button>
+        <button @click="terminateLease" class="btn btn-warning" :disabled="!endLeaseDate || saving">
+          <span v-if="saving" class="loading loading-spinner"></span>
+          Terminer le bail
+        </button>
+      </div>
+    </Modal>
 
       <!-- Document Upload Modal -->
       <DocumentUploadModal
@@ -743,6 +781,7 @@ import api from '@/services/api'
 import LeaseOccupancyModal from '@/components/LeaseOccupancyModal.vue'
 import LeaseRentPeriodModal from '@/components/LeaseRentPeriodModal.vue'
 import DocumentUploadModal from '@/components/DocumentUploadModal.vue'
+import Modal from '@/components/ui/Modal.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -760,6 +799,8 @@ const selectedLease = ref(null)
 const isEditingInfo = ref(false)
 const documents = ref([])
 const showDocumentUploadModal = ref(false)
+const showEndLeaseModal = ref(false)
+const endLeaseDate = ref('')
 const infoForm = reactive({
   name: '',
   address: '',
@@ -911,6 +952,26 @@ const getStatusLabel = (status) => {
     loue: 'Loué',
     en_travaux: 'En travaux',
     vendu: 'Vendu'
+  }
+  return labelMap[status] || status
+}
+
+const getLeaseStatusBadgeClass = (status) => {
+  const classMap = {
+    actif: 'badge-success',
+    termine: 'badge-ghost',
+    resilie: 'badge-error',
+    en_attente: 'badge-warning'
+  }
+  return classMap[status] || 'badge-ghost'
+}
+
+const getLeaseStatusLabel = (status) => {
+  const labelMap = {
+    actif: 'Actif',
+    termine: 'Terminé',
+    resilie: 'Résilié',
+    en_attente: 'En attente'
   }
   return labelMap[status] || status
 }
@@ -1088,15 +1149,18 @@ const openCreateLeaseModal = async () => {
   showEditLeaseModal.value = true
 }
 
-const editLease = (lease) => {
+const editLease = async (lease) => {
+  // Load tenants for selection
+  await loadTenants()
+  
   editingLease.value = lease
   leaseForm.value = {
     tenantId: lease.tenantId,
     startDate: lease.startDate ? lease.startDate.split('T')[0] : '',
     endDate: lease.endDate ? lease.endDate.split('T')[0] : '',
-    monthlyRent: lease.monthlyRent,
+    monthlyRent: lease.rentAmount,
     deposit: lease.deposit,
-    numberOfOccupants: lease.numberOfOccupants || 1,
+    numberOfOccupants: lease.numberOfOccupants,
     status: lease.status,
     notes: lease.notes || ''
   }
@@ -1181,6 +1245,48 @@ const saveLease = async () => {
   } catch (error) {
     console.error('Erreur sauvegarde bail:', error)
     toast.error(error.response?.data?.message || 'Erreur lors de la sauvegarde du bail')
+  } finally {
+    saving.value = false
+  }
+}
+
+const openEndLeaseModal = (lease) => {
+  selectedLease.value = lease
+  endLeaseDate.value = new Date().toISOString().split('T')[0]
+  showEndLeaseModal.value = true
+}
+
+const closeEndLeaseModal = () => {
+  showEndLeaseModal.value = false
+  selectedLease.value = null
+  endLeaseDate.value = ''
+}
+
+const terminateLease = async () => {
+  if (!selectedLease.value || !endLeaseDate.value) return
+  
+  saving.value = true
+  try {
+    const data = {
+      propertyId: route.params.id,
+      tenantId: selectedLease.value.tenantId,
+      startDate: selectedLease.value.startDate,
+      endDate: endLeaseDate.value,
+      rentAmount: selectedLease.value.monthlyRent,
+      chargesAmount: selectedLease.value.chargesAmount || 0,
+      deposit: selectedLease.value.deposit,
+      numberOfOccupants: selectedLease.value.numberOfOccupants,
+      status: 'termine',
+      notes: selectedLease.value.notes
+    }
+
+    await api.put(`/api/leases/${selectedLease.value.id}`, data)
+    toast.success('Bail terminé avec succès')
+    closeEndLeaseModal()
+    await loadLeases()
+  } catch (error) {
+    console.error('Error terminating lease:', error)
+    toast.error('Erreur lors de la fin du bail')
   } finally {
     saving.value = false
   }

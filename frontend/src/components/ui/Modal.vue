@@ -1,14 +1,14 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="modelValue" class="modal modal-open" @click.self="closeOnBackdrop && $emit('update:modelValue', false)">
-        <div class="modal-box" :class="sizeClass">
+      <div v-if="modelValue" class="modal modal-open bg-black/60 backdrop-blur-sm" @click.self="closeOnBackdrop && $emit('update:modelValue', false)">
+        <div class="modal-box relative rounded-2xl shadow-2xl transform transition-all duration-300" :class="sizeClass">
           <!-- Header -->
-          <div class="flex items-center justify-between mb-4" v-if="!hideHeader">
-            <h3 class="font-bold text-lg">{{ title }}</h3>
+          <div class="flex items-center justify-between mb-6 pb-4 border-b border-base-200" v-if="!hideHeader">
+            <h3 class="font-bold text-xl">{{ title }}</h3>
             <button
               type="button"
-              class="btn btn-sm btn-circle btn-ghost"
+              class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
               @click="$emit('update:modelValue', false)"
               v-if="showClose"
             >
@@ -22,7 +22,7 @@
           </div>
 
           <!-- Footer -->
-          <div class="modal-action" v-if="!hideFooter || $slots.footer">
+          <div class="modal-action mt-8 pt-4 border-t border-base-200" v-if="!hideFooter || $slots.footer">
             <slot name="footer">
               <button type="button" class="btn" @click="$emit('update:modelValue', false)">
                 {{ cancelText }}
@@ -106,11 +106,22 @@ const sizeClass = computed(() => {
 <style scoped>
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.modal-enter-active .modal-box,
+.modal-leave-active .modal-box {
+  transition: all 0.3s ease-out;
+}
+
+.modal-enter-from .modal-box,
+.modal-leave-to .modal-box {
+  opacity: 0;
+  transform: scale(0.95);
 }
 </style>

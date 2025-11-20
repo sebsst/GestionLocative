@@ -1,4 +1,4 @@
-import { Lease, Property, Tenant, LeaseOccupant } from '../models/index.js';
+import { Lease, Property, Tenant, LeaseOccupant, LeaseOccupancyPeriod, LeaseTenant } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { Op } from 'sequelize';
 
@@ -66,7 +66,17 @@ export const create = async (req, res, next) => {
     });
 
     if (existingLease) {
-      throw new AppError('Ce bien est déjà loué', 400);
+      // Terminer le bail précédent la veille du nouveau bail
+      const newStartDate = new Date(leaseData.startDate);
+      const endDate = new Date(newStartDate);
+      endDate.setDate(endDate.getDate() - 1);
+
+      await existingLease.update({
+        endDate: endDate,
+        status: 'termine'
+      });
+
+      await closeLeaseAssociations(existingLease.id, endDate);
     }
 
     // Créer le bail
@@ -161,10 +171,14 @@ export const terminate = async (req, res, next) => {
       throw new AppError('Bail non trouvé', 404);
     }
 
+    const actualEndDate = endDate || new Date();
+
     await lease.update({
-      endDate: endDate || new Date(),
+      endDate: actualEndDate,
       status: 'termine'
     });
+
+    await closeLeaseAssociations(lease.id, actualEndDate);
 
     // Mettre à jour le statut du bien
     await Property.update(
@@ -267,4 +281,28 @@ export const removeOccupant = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+const closeLeaseAssociations = async (leaseId, endDate) => {
+  // Clôturer les périodes d'occupation actives
+  await LeaseOccupancyPeriod.update(
+    { endDate: endDate },
+    {
+      where: {
+        leaseId: leaseId,
+        endDate: null
+      }
+    }
+  );
+
+  // Clôturer les associations de locataires actives
+  await LeaseTenant.update(
+    { endDate: endDate },
+    {
+      where: {
+        leaseId: leaseId,
+        endDate: null
+      }
+    }
+  );
 };
