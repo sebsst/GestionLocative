@@ -6,6 +6,9 @@
       </svg>
       <h1>Gestion Locative</h1>
     </div>
+    <div class="header-center flex-1 max-w-2xl mx-4">
+      <GlobalSearch />
+    </div>
     <div class="header-right">
       <button
         class="btn btn-ghost btn-circle"
@@ -51,6 +54,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import GlobalSearch from '@/components/GlobalSearch.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()

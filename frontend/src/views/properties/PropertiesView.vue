@@ -89,8 +89,8 @@
      </div>
 
      <!-- Loading -->
-     <div v-if="loading" class="flex justify-center items-center h-64">
-       <span class="loading loading-spinner loading-lg text-primary"></span>
+     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+       <SkeletonCard v-for="i in 8" :key="i" />
      </div>
 
      <!-- Table -->
@@ -491,6 +491,11 @@
         </div>
       </div>
 
+      <!-- Auto-save indicator -->
+      <div v-if="lastSaved" class="px-6 py-2 text-xs text-base-content/60 border-t border-base-300">
+        💾 Brouillon sauvegardé {{ formatLastSaved(lastSaved) }}
+      </div>
+
       <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="closeDialog" class="btn btn-ghost">Annuler</button>
@@ -505,10 +510,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import Modal from '@/components/ui/Modal.vue'
+import SkeletonCard from '@/components/ui/SkeletonCard.vue'
+import { useFormAutoSave } from '@/composables/useFormAutoSave'
 
 const router = useRouter()
 
@@ -570,6 +577,13 @@ const propertyForm = reactive({
   description: '',
   buildingId: null
 })
+
+// Auto-save for property form
+const { lastSaved, clearStorage: clearPropertyDraft } = useFormAutoSave(
+  computed(() => editingProperty.value ? `property-form-${editingProperty.value.id}` : 'property-form-new'),
+  propertyForm,
+  30000 // Save every 30 seconds
+)
 
 const propertyTypes = [
   { label: 'Appartement', value: 'appartement' },
@@ -638,6 +652,7 @@ const closeDialog = () => {
   showDialog.value = false
   editingProperty.value = null
   resetForm()
+  // Don't clear draft on close, only on successful save
 }
 
 const saveProperty = async () => {
@@ -655,6 +670,8 @@ const saveProperty = async () => {
       await api.post('/api/properties', propertyForm)
       alert('Succès: Bien créé avec succès')
     }
+    // Clear auto-saved draft after successful save
+    clearPropertyDraft()
     closeDialog()
     loadProperties()
   } catch (error) {
@@ -734,6 +751,15 @@ const formatCurrency = (value) => {
     style: 'currency',
     currency: 'EUR'
   }).format(value || 0)
+}
+
+const formatLastSaved = (date) => {
+  const now = new Date()
+  const diff = Math.floor((now - date) / 1000) // seconds
+  
+  if (diff < 60) return 'à l\'instant'
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
+  return `il y a ${Math.floor(diff / 3600)} h`
 }
 
 onMounted(() => {

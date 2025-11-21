@@ -22,6 +22,7 @@ import fiscalRoutes from './routes/fiscal.routes.js';
 import fiscalDeclarationRoutes from './routes/fiscalDeclaration.routes.js';
 import activityRoutes from './routes/activity.routes.js';
 import dataRoutes from './routes/data.routes.js';
+import searchRoutes from './routes/search.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/fiscal', fiscalRoutes);
 app.use('/api/fiscal-declarations', fiscalDeclarationRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/search', searchRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
