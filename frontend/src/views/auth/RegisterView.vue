@@ -66,8 +66,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const toast = useToast()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -77,7 +79,7 @@ const loading = ref(false)
 
 const handleRegister = async () => {
   if (password.value !== confirmPassword.value) {
-    alert('Erreur: Les mots de passe ne correspondent pas')
+    toast.warning('Les mots de passe ne correspondent pas')
     return
   }
 
@@ -86,7 +88,8 @@ const handleRegister = async () => {
     await authStore.register({ email: email.value, password: password.value })
     router.push('/')
   } catch (error) {
-    alert('Erreur: ' + (error.response?.data?.error?.message || 'Inscription échouée'))
+    toast.error(error.response?.data?.error?.message || 'Inscription échouée')
+    console.error('Register error:', error)
   } finally {
     loading.value = false
   }

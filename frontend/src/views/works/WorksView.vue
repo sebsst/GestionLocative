@@ -819,10 +819,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import api from '@/services/api'
 import Modal from '@/components/ui/Modal.vue'
 
+const router = useRouter()
+const toast = useToast()
 const works = ref([])
 const properties = ref([])
 const artisans = ref([])
@@ -916,7 +920,7 @@ const loadWorks = async () => {
     const response = await api.get('/api/works', { params })
     works.value = response.data.data || []
   } catch (error) {
-    alert('Erreur: Impossible de charger les travaux')
+    toast.error('Impossible de charger les travaux')
     console.error('Error loading works:', error)
   } finally {
     loading.value = false
@@ -1001,7 +1005,7 @@ const removeInvoiceFile = (index) => {
 
 const saveWork = async () => {
   if (!workForm.propertyId || !workForm.type || !workForm.nature) {
-    alert('Attention: Veuillez remplir tous les champs obligatoires')
+    toast.warning('Veuillez remplir tous les champs obligatoires')
     return
   }
 
@@ -1034,17 +1038,19 @@ const saveWork = async () => {
       await api.put(`/api/works/${editingWork.value.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-      alert('Succès: Travaux modifiés avec succès')
+      toast.success('Travaux modifiés avec succès')
     } else {
-      await api.post('/api/works', formData, {
+      const workPayload = { ...workForm }; // Assuming workPayload is derived from workForm
+      const response = await api.post('/api/works', workPayload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-      alert('Succès: Travaux créés avec succès')
+      workForm.id = response.data.data.id
+      toast.success('Travaux créés avec succès')
     }
     closeDialog()
     loadWorks()
   } catch (error) {
-    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de sauvegarder les travaux'}`)
+    toast.error(error.response?.data?.error?.message || 'Impossible de sauvegarder les travaux')
     console.error('Error saving work:', error)
   } finally {
     saving.value = false
@@ -1084,24 +1090,24 @@ const deleteWork = async (work) => {
 
   try {
     await api.delete(`/api/works/${work.id}`)
-    alert('Succès: Travaux supprimés avec succès')
+    toast.success('Travaux supprimés avec succès')
     loadWorks()
   } catch (error) {
-    alert('Erreur: Impossible de supprimer les travaux')
+    toast.error('Impossible de supprimer les travaux')
     console.error('Error deleting work:', error)
   }
 }
 
 const createArtisan = async () => {
   if (!artisanForm.name) {
-    alert('Attention: Le nom de l\'artisan est obligatoire')
+    toast.warning('Le nom de l\'artisan est obligatoire')
     return
   }
 
   savingArtisan.value = true
   try {
     const response = await api.post('/api/works/artisans', artisanForm)
-    alert('Succès: Artisan créé avec succès')
+    toast.success('Artisan créé avec succès')
 
     showArtisanDialog.value = false
     resetArtisanForm()
@@ -1110,7 +1116,7 @@ const createArtisan = async () => {
     // Sélectionner automatiquement le nouvel artisan
     workForm.artisanId = response.data.data.id
   } catch (error) {
-    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de créer l\'artisan'}`)
+    toast.error(error.response?.data?.error?.message || 'Impossible de créer l\'artisan')
     console.error('Error creating artisan:', error)
   } finally {
     savingArtisan.value = false
@@ -1194,20 +1200,20 @@ const editArtisan = (artisan) => {
 
 const updateArtisan = async () => {
   if (!editArtisanForm.name) {
-    alert('Attention: Le nom de l\'artisan est obligatoire')
+    toast.warning('Le nom de l\'artisan est obligatoire')
     return
   }
 
   savingArtisan.value = true
   try {
     await api.put(`/api/works/artisans/${editingArtisan.value.id}`, editArtisanForm)
-    alert('Succès: Artisan modifié avec succès')
+    toast.success('Artisan modifié avec succès')
 
     showEditArtisanDialog.value = false
     editingArtisan.value = null
     await loadArtisans()
   } catch (error) {
-    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de modifier l\'artisan'}`)
+    toast.error(error.response?.data?.error?.message || 'Impossible de modifier l\'artisan')
     console.error('Error updating artisan:', error)
   } finally {
     savingArtisan.value = false
@@ -1221,10 +1227,10 @@ const deleteArtisan = async (artisan) => {
 
   try {
     await api.delete(`/api/works/artisans/${artisan.id}`)
-    alert('Succès: Artisan supprimé avec succès')
+    toast.success('Artisan supprimé avec succès')
     await loadArtisans()
   } catch (error) {
-    alert('Erreur: Impossible de supprimer l\'artisan')
+    toast.error('Impossible de supprimer l\'artisan')
     console.error('Error deleting artisan:', error)
   }
 }
@@ -1233,5 +1239,26 @@ onMounted(() => {
   loadWorks()
   loadProperties()
   loadArtisans()
+})
+
+// Keyboard shortcuts for the work dialog
+watch(showDialog, (isOpen) => {
+  if (isOpen) {
+    const handleKeyboard = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveWork()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        saveWork()
+      }
+    }
+    window.addEventListener('keydown', handleKeyboard)
+    window._workDialogCleanup = () => window.removeEventListener('keydown', handleKeyboard)
+  } else if (window._workDialogCleanup) {
+    window._workDialogCleanup()
+    delete window._workDialogCleanup
+  }
 })
 </script>

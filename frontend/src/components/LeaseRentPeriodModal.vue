@@ -1,111 +1,42 @@
 <template>
-  <div v-if="isOpen" class="modal modal-open modal-with-tabs" @click.self="closeModal">
-    <div class="modal-box max-w-4xl">
-      <h3 class="font-bold text-lg mb-4">Historique des montants de loyer</h3>
-
-      <!-- Current Period Summary -->
-      <div v-if="currentPeriod" class="alert alert-info mb-6">
-        <div>
-          <div class="text-sm font-semibold">Montants actuels</div>
-          <div class="flex gap-4 mt-2">
-            <div>
-              <span class="text-xs opacity-70">Loyer HC:</span>
-              <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.rentAmount) }}</span>
-            </div>
-            <div>
-              <span class="text-xs opacity-70">Charges:</span>
-              <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.chargesAmount) }}</span>
-            </div>
-            <div>
-              <span class="text-xs opacity-70">Total:</span>
-              <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.totalAmount) }}</span>
-            </div>
+  <Modal
+    :model-value="isOpen"
+    @update:model-value="handleClose"
+    title="Historique des montants de loyer"
+    size="xl"
+    :show-close="true"
+  >
+    <!-- Current Period Summary -->
+    <div v-if="currentPeriod" class="alert alert-info mb-6">
+      <div>
+        <div class="text-sm font-semibold">Montants actuels</div>
+        <div class="flex gap-4 mt-2">
+          <div>
+            <span class="text-xs opacity-70">Loyer HC:</span>
+            <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.rentAmount) }}</span>
+          </div>
+          <div>
+            <span class="text-xs opacity-70">Charges:</span>
+            <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.chargesAmount) }}</span>
+          </div>
+          <div>
+            <span class="text-xs opacity-70">Total:</span>
+            <span class="font-bold ml-1">{{ formatCurrency(currentPeriod.totalAmount) }}</span>
           </div>
         </div>
       </div>
+    </div>
 
-       <!-- Tabs -->
-       <div class="tabs mb-4 gap-4">
-         <a
-           class="tab tab-lg"
-           :class="{ 'tab-active': activeTab === 'new' }"
-           @click="activeTab = 'new'"
-         >
-           {{ editingPeriod ? 'Modifier' : 'Nouveau montant' }}
-         </a>
-         <a
-           class="tab tab-lg border-2 border-base-300 rounded-lg"
-           :class="{ 'tab-active': activeTab === 'irl', 'border-primary': activeTab === 'irl' }"
-           @click="activeTab = 'irl'"
-         >
-           Révision IRL
-         </a>
-         <a
-           class="tab tab-lg border-2 border-base-300 rounded-lg"
-           :class="{ 'tab-active': activeTab === 'history', 'border-primary': activeTab === 'history' }"
-           @click="activeTab = 'history'"
-         >
-           Historique
-         </a>
-       </div>
-
-      <!-- History Tab -->
-      <div v-if="activeTab === 'history'" class="overflow-x-auto">
-        <table class="table table-zebra">
-          <thead>
-            <tr>
-               <th>Période</th>
-               <th>Loyer HC</th>
-               <th>Charges</th>
-               <th>Total</th>
-               <th>Motif</th>
-               <th>IRL</th>
-               <th>Actions</th>
-             </tr>
-           </thead>
-          <tbody>
-            <tr v-for="period in periods" :key="period.id" class="h-6">
-              <td>
-                <div class="text-sm">
-                  {{ formatDate(period.startDate) }}
-                  <span v-if="period.endDate"> → {{ formatDate(period.endDate) }}</span>
-                  <span v-else class="badge badge-success badge-xs ml-1">Actuel</span>
-                </div>
-              </td>
-               <td class="font-semibold">{{ formatCurrency(period.rentAmount) }}</td>
-               <td>{{ formatCurrency(period.chargesAmount) }}</td>
-               <td class="font-bold">{{ formatCurrency(period.totalAmount) }}</td>
-              <td>
-                <span class="badge badge-sm" :class="getReasonBadgeClass(period.changeReason)">
-                  {{ getReasonLabel(period.changeReason) }}
-                </span>
-              </td>
-               <td>
-                 <div v-if="period.irlIndex" class="text-xs">
-                   {{ period.irlQuarter }}: {{ period.irlIndex }}
-                 </div>
-               </td>
-               <td>
-                 <div class="flex gap-2">
-                   <button @click="editPeriod(period)" class="btn btn-ghost btn-xs" title="Modifier">
-                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                     </svg>
-                   </button>
-                   <button @click="deletePeriod(period.id)" class="btn btn-ghost btn-xs text-error" title="Supprimer">
-                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                     </svg>
-                   </button>
-                 </div>
-               </td>
-             </tr>
-          </tbody>
-        </table>
+    <!-- ACCORDION SECTION 1: New/Edit Amount (open by default) -->
+    <div class="collapse collapse-arrow bg-base-200 mb-4 collapse-open">
+      <input type="checkbox" checked />
+      <div class="collapse-title text-lg font-medium flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        {{ editingPeriod ? 'Modifier le montant' : 'Nouveau montant' }}
       </div>
-
-       <!-- New/Edit Amount Tab -->
-       <div v-if="activeTab === 'new'">
+      <div class="collapse-content">
         <form @submit.prevent="createNewPeriod" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div class="form-control">
@@ -135,47 +66,47 @@
               </select>
             </div>
 
-             <div class="form-control">
-               <label class="label pb-2">
-                 <span class="label-text font-semibold">Loyer charges comprises (€)</span>
-               </label>
-               <input
-                 type="number"
-                 step="0.01"
-                 v-model="newPeriod.totalAmount"
-                 class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary"
-                 placeholder="0.00"
-                 required
-               >
-             </div>
+            <div class="form-control">
+              <label class="label pb-2">
+                <span class="label-text font-semibold">Loyer charges comprises (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                v-model="newPeriod.totalAmount"
+                class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary"
+                placeholder="0.00"
+                required
+              >
+            </div>
 
-             <div class="form-control">
-               <label class="label pb-2">
-                 <span class="label-text font-semibold">Provisions sur charges (€)</span>
-               </label>
-               <input
-                 type="number"
-                 step="0.01"
-                 v-model="newPeriod.chargesAmount"
-                 class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary"
-                 placeholder="0.00"
-                 required
-               >
-             </div>
+            <div class="form-control">
+              <label class="label pb-2">
+                <span class="label-text font-semibold">Provisions sur charges (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                v-model="newPeriod.chargesAmount"
+                class="input input-bordered bg-base-200 focus:bg-base-100 focus:border-primary"
+                placeholder="0.00"
+                required
+              >
+            </div>
 
-             <div class="form-control">
-               <label class="label pb-2">
-                 <span class="label-text font-semibold">Loyer hors charges (€)</span>
-               </label>
-               <input
-                 type="number"
-                 step="0.01"
-                 :value="calculatedRentAmount"
-                 class="input input-bordered bg-base-300"
-                 placeholder="0.00"
-                 disabled
-               >
-             </div>
+            <div class="form-control">
+              <label class="label pb-2">
+                <span class="label-text font-semibold">Loyer hors charges (€)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                :value="calculatedRentAmount"
+                class="input input-bordered bg-base-300"
+                placeholder="0.00"
+                disabled
+              >
+            </div>
 
             <div v-if="newPeriod.changeReason === 'irl_revision'" class="form-control">
               <label class="label pb-2">
@@ -228,19 +159,28 @@
             <span>La période actuelle sera automatiquement clôturée la veille de la nouvelle date de début.</span>
           </div>
 
-           <div class="modal-action">
-             <button type="button" @click="closeModal" class="btn btn-ghost">Annuler</button>
-             <button v-if="editingPeriod" type="button" @click="cancelEdit" class="btn btn-outline">Nouvelle période</button>
-             <button type="submit" class="btn btn-primary" :disabled="loading">
-               <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-               {{ editingPeriod ? 'Modifier la période' : 'Créer la période' }}
-             </button>
-           </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" @click="handleClose" class="btn btn-ghost">Annuler</button>
+            <button v-if="editingPeriod" type="button" @click="cancelEdit" class="btn btn-outline">Nouvelle période</button>
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              <span v-if="loading" class="loading loading-spinner loading-sm"></span>
+              {{ editingPeriod ? 'Modifier la période' : 'Créer la période' }}
+            </button>
+          </div>
         </form>
       </div>
+    </div>
 
-      <!-- IRL Revision Tab -->
-      <div v-if="activeTab === 'irl'">
+    <!-- ACCORDION SECTION 2: IRL Revision -->
+    <div class="collapse collapse-arrow bg-base-200 mb-4">
+      <input type="checkbox" />
+      <div class="collapse-title text-lg font-medium flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        Révision IRL
+      </div>
+      <div class="collapse-content">
         <form @submit.prevent="calculateIRL" class="space-y-4">
           <div class="alert alert-info">
             <div>
@@ -368,17 +308,89 @@
           </div>
         </form>
       </div>
+    </div>
 
-      <!-- Close Button -->
-      <div v-if="activeTab === 'history'" class="modal-action">
-        <button @click="closeModal" class="btn">Fermer</button>
+    <!-- ACCORDION SECTION 3: History -->
+    <div class="collapse collapse-arrow bg-base-200 mb-4">
+      <input type="checkbox" />
+      <div class="collapse-title text-lg font-medium flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Historique des montants
+        <span v-if="periods.length > 0" class="badge badge-neutral badge-sm ml-2">
+          {{ periods.length }}
+        </span>
+      </div>
+      <div class="collapse-content">
+        <div v-if="periods.length > 0" class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>Période</th>
+                <th>Loyer HC</th>
+                <th>Charges</th>
+                <th>Total</th>
+                <th>Motif</th>
+                <th>IRL</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="period in periods" :key="period.id" class="h-6">
+                <td>
+                  <div class="text-sm">
+                    {{ formatDate(period.startDate) }}
+                    <span v-if="period.endDate">→ {{ formatDate(period.endDate) }}</span>
+                    <span v-else class="badge badge-success badge-xs ml-1">Actuel</span>
+                  </div>
+                </td>
+                <td class="font-semibold">{{ formatCurrency(period.rentAmount) }}</td>
+                <td>{{ formatCurrency(period.chargesAmount) }}</td>
+                <td class="font-bold">{{ formatCurrency(period.totalAmount) }}</td>
+                <td>
+                  <span class="badge badge-sm" :class="getReasonBadgeClass(period.changeReason)">
+                    {{ getReasonLabel(period.changeReason) }}
+                  </span>
+                </td>
+                <td>
+                  <div v-if="period.irlIndex" class="text-xs">
+                    {{ period.irlQuarter }}: {{ period.irlIndex }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    <button @click="editPeriod(period)" class="btn btn-ghost btn-xs" title="Modifier">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button @click="deletePeriod(period.id)" class="btn btn-ghost btn-xs text-error" title="Supprimer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="text-center py-8 text-base-content/60">
+          Aucun historique de montant. Créez une première période ci-dessus.
+        </div>
       </div>
     </div>
-  </div>
+
+    <template #footer>
+      <button @click="handleClose" class="btn">Fermer</button>
+    </template>
+  </Modal>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
+import Modal from '@/components/ui/Modal.vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
@@ -390,7 +402,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updated']);
 
 const toast = useToast();
-const activeTab = ref('new');
 const periods = ref([]);
 const currentPeriod = ref(null);
 const loading = ref(false);
@@ -483,9 +494,6 @@ const editPeriod = (period) => {
     irlQuarter: period.irlQuarter || '',
     notes: period.notes || ''
   };
-
-  // Switch to new tab for editing
-  activeTab.value = 'new';
 };
 
 const createNewPeriod = async () => {
@@ -507,9 +515,10 @@ const createNewPeriod = async () => {
       chargesAmount: newPeriod.value.chargesAmount,
       totalAmount: newPeriod.value.totalAmount,
       changeReason: newPeriod.value.changeReason,
-      irlIndex: newPeriod.value.irlIndex,
-      irlQuarter: newPeriod.value.irlQuarter,
-      notes: newPeriod.value.notes
+      // Convert empty strings to null for optional numeric fields
+      irlIndex: newPeriod.value.irlIndex || null,
+      irlQuarter: newPeriod.value.irlQuarter || null,
+      notes: newPeriod.value.notes || null
     };
 
     if (editingPeriod.value) {
@@ -538,11 +547,10 @@ const createNewPeriod = async () => {
       notes: ''
     };
 
-    activeTab.value = 'history';
     emit('updated');
   } catch (error) {
     console.error('Error saving period:', error);
-    toast.error(error.response?.data?.error?.message || 'Erreur lors de la sauvegarde');
+    toast.error(error.response?.data?.message || 'Erreur lors de la sauvegarde de la période');
   } finally {
     loading.value = false;
   }
@@ -634,7 +642,6 @@ const applyIRLRevision = async () => {
 
     await loadPeriods();
     await loadCurrentPeriod();
-    activeTab.value = 'history';
     emit('updated');
   } catch (error) {
     console.error('Error applying IRL revision:', error);
@@ -646,7 +653,6 @@ const applyIRLRevision = async () => {
 
 const closeModal = () => {
   cancelEdit();
-  activeTab.value = 'new';
   emit('close');
 };
 
@@ -687,5 +693,9 @@ const getReasonBadgeClass = (reason) => {
     other: 'badge-ghost'
   };
   return classes[reason] || 'badge-ghost';
+};
+
+const handleClose = () => {
+  emit('close');
 };
 </script>

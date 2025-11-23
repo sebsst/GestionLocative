@@ -50,11 +50,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
 
 const router = useRouter()
+const toast = useToast()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -67,7 +70,8 @@ const handleLogin = async () => {
     await authStore.login({ email: email.value, password: password.value })
     router.push('/')
   } catch (error) {
-    alert('Erreur: ' + (error.response?.data?.error?.message || 'Connexion échouée'))
+    toast.error(error.response?.data?.error?.message || 'Connexion échouée')
+    console.error('Login error:', error)
   } finally {
     loading.value = false
   }

@@ -44,7 +44,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 const props = defineProps({
   modelValue: {
@@ -90,7 +91,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['update:modelValue', 'confirm'])
+const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const sizeClass = computed(() => {
   const sizes = {
@@ -100,6 +101,29 @@ const sizeClass = computed(() => {
     xl: 'max-w-6xl'
   }
   return sizes[props.size] || sizes.md
+})
+
+// Keyboard shortcuts - only active when modal is open
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        emit('update:modelValue', false)
+      }
+    }
+    window.addEventListener('keydown', handleEscape)
+    
+    // Cleanup when modal closes
+    const cleanup = () => {
+      window.removeEventListener('keydown', handleEscape)
+    }
+    
+    // Store cleanup function
+    window._modalEscapeCleanup = cleanup
+  } else if (window._modalEscapeCleanup) {
+    window._modalEscapeCleanup()
+    delete window._modalEscapeCleanup
+  }
 })
 </script>
 

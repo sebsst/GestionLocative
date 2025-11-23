@@ -1167,7 +1167,7 @@ Je vous prie d'agréer, ${data.tenant.civility || 'Madame, Monsieur'}, l'express
 
 const applyIRLIncrease = async () => {
   if (!irlForm.leaseId) {
-    alert('Attention: Veuillez sélectionner un bail')
+    toast.warning('Veuillez sélectionner un bail')
     return
   }
 
@@ -1180,11 +1180,11 @@ const applyIRLIncrease = async () => {
     await api.put(`/api/leases/${irlForm.leaseId}`, {
       monthlyRent: irlCalculation.newRent
     })
-    alert(`Succès: Le loyer a été mis à jour à ${formatCurrency(irlCalculation.newRent)}`)
+    toast.success(`Le loyer a été mis à jour à ${formatCurrency(irlCalculation.newRent)}`)
     closeIRLDialog()
     loadActiveLeases()
   } catch (error) {
-    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible d\'appliquer la réévaluation'}`)
+    toast.error(error.response?.data?.error?.message || 'Impossible d\'appliquer la réévaluation')
     console.error('Error applying IRL increase:', error)
   } finally {
     saving.value = false

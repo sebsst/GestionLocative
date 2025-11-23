@@ -512,12 +512,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import api from '@/services/api'
 import Modal from '@/components/ui/Modal.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import { useFormAutoSave } from '@/composables/useFormAutoSave'
 
 const router = useRouter()
+const toast = useToast()
 
 const properties = ref([])
 const buildings = ref([])
@@ -613,7 +615,7 @@ const loadProperties = async () => {
     const response = await api.get('/api/properties', { params })
     properties.value = response.data.data || []
   } catch (error) {
-    alert('Erreur: Impossible de charger les biens')
+    toast.error('Impossible de charger les biens')
     console.error('Error loading properties:', error)
   } finally {
     loading.value = false
@@ -657,7 +659,7 @@ const closeDialog = () => {
 
 const saveProperty = async () => {
   if (!propertyForm.name || !propertyForm.type || !propertyForm.address || !propertyForm.city || !propertyForm.postalCode) {
-    alert('Attention: Veuillez remplir tous les champs obligatoires')
+    toast.warning('Veuillez remplir tous les champs obligatoires')
     return
   }
 
@@ -665,17 +667,17 @@ const saveProperty = async () => {
   try {
     if (editingProperty.value) {
       await api.put(`/api/properties/${editingProperty.value.id}`, propertyForm)
-      alert('Succès: Bien modifié avec succès')
+      toast.success('Bien modifié avec succès')
     } else {
       await api.post('/api/properties', propertyForm)
-      alert('Succès: Bien créé avec succès')
+      toast.success('Bien créé avec succès')
     }
     // Clear auto-saved draft after successful save
     clearPropertyDraft()
     closeDialog()
     loadProperties()
   } catch (error) {
-    alert(`Erreur: ${error.response?.data?.error?.message || 'Impossible de sauvegarder le bien'}`)
+    toast.error(error.response?.data?.error?.message || 'Impossible de sauvegarder le bien')
     console.error('Error saving property:', error)
   } finally {
     saving.value = false
@@ -705,10 +707,10 @@ const deleteProperty = async (property) => {
 
   try {
     await api.delete(`/api/properties/${property.id}`)
-    alert('Succès: Bien supprimé avec succès')
+    toast.success('Bien supprimé avec succès')
     loadProperties()
   } catch (error) {
-    alert('Erreur: Impossible de supprimer le bien')
+    toast.error('Impossible de supprimer le bien')
     console.error('Error deleting property:', error)
   }
 }
@@ -764,5 +766,26 @@ const formatLastSaved = (date) => {
 
 onMounted(() => {
   loadProperties()
+})
+
+// Keyboard shortcuts for the dialog
+watch(showDialog, (isOpen) => {
+  if (isOpen) {
+    const handleKeyboard = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveProperty()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        saveProperty()
+      }
+    }
+    window.addEventListener('keydown', handleKeyboard)
+    window._propertyDialogCleanup = () => window.removeEventListener('keydown', handleKeyboard)
+  } else if (window._propertyDialogCleanup) {
+    window._propertyDialogCleanup()
+    delete window._propertyDialogCleanup
+  }
 })
 </script>
