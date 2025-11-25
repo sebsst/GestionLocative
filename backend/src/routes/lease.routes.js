@@ -18,4 +18,8 @@ router.post('/:id/occupants', leaseController.addOccupant);
 router.put('/:id/occupants/:occupantId', leaseController.updateOccupant);
 router.delete('/:id/occupants/:occupantId', leaseController.removeOccupant);
 
+// Clôture et historique
+router.put('/:id/close', leaseController.closeLease);
+router.get('/:id/history', leaseController.getLeaseHistory);
+
 export default router;

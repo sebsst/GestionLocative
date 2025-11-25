@@ -143,17 +143,6 @@
                     </svg>
                   </button>
                   <button
-                    v-if="!getActiveLease(tenant)"
-                    @click="openQuickLeaseModal(tenant)"
-                    class="btn btn-primary btn-xs gap-1"
-                    title="Créer un bail"
-                  >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Créer bail
-                  </button>
-                  <button
                     @click="deleteTenant(tenant)"
                     class="btn btn-ghost btn-xs text-error"
                     title="Supprimer"
@@ -254,114 +243,12 @@
       </template>
     </Modal>
 
-    <!-- Quick Lease Modal -->
-    <Modal
-      v-model="showQuickLeaseModal"
-      title="Créer un bail rapide"
-      size="md"
-    >
-      <form @submit.prevent="createQuickLease" class="space-y-4">
-        <!-- Tenant Info (read-only) -->
-        <div class="alert alert-info">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          <span><strong>Locataire:</strong> {{ selectedTenantForLease?.firstName }} {{ selectedTenantForLease?.lastName }}</span>
-        </div>
 
-        <!-- Property Selection -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-semibold">Bien *</span>
-            <span class="label-text-alt">{{ availableProperties.length }} disponible(s)</span>
-          </label>
-          <select 
-            v-model="quickLeaseForm.propertyId" 
-            class="select select-bordered" 
-            required
-            @change="onPropertySelected"
-          >
-            <option value="">Sélectionner un bien</option>
-            <option v-for="property in availableProperties" :key="property.id" :value="property.id">
-              {{ property.name }} - {{ formatCurrency(property.currentRent) }}/mois
-            </option>
-          </select>
-        </div>
-
-        <!-- Start Date -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-semibold">Date de début *</span>
-            <span class="label-text-alt">Par défaut: 1er du mois prochain</span>
-          </label>
-          <input
-            v-model="quickLeaseForm.startDate"
-            type="date"
-            class="input input-bordered"
-            required
-            @change="onStartDateChanged"
-          />
-        </div>
-
-        <!-- End Date -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-semibold">Date de fin</span>
-            <span class="label-text-alt">Par défaut: +1 an</span>
-          </label>
-          <input
-            v-model="quickLeaseForm.endDate"
-            type="date"
-            class="input input-bordered"
-            :min="quickLeaseForm.startDate"
-          />
-        </div>
-
-        <!-- Rent Amount -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-semibold">Loyer mensuel *</span>
-            <span class="label-text-alt">Auto-rempli depuis le bien</span>
-          </label>
-          <input
-            v-model.number="quickLeaseForm.rentAmount"
-            type="number"
-            step="0.01"
-            min="0"
-            class="input input-bordered"
-            required
-          />
-        </div>
-
-        <!-- Charges (optional) -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-semibold">Charges mensuelles</span>
-          </label>
-          <input
-            v-model.number="quickLeaseForm.charges"
-            type="number"
-            step="0.01"
-            min="0"
-            class="input input-bordered"
-            placeholder="0.00"
-          />
-        </div>
-      </form>
-
-      <template #footer>
-        <button @click="showQuickLeaseModal = false" class="btn">Annuler</button>
-        <button @click="createQuickLease" class="btn btn-primary" :disabled="saving">
-          <span v-if="saving" class="loading loading-spinner loading-sm"></span>
-          {{ saving ? 'Création...' : 'Créer le bail' }}
-        </button>
-      </template>
-    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import api from '@/services/api'
@@ -374,10 +261,8 @@ const tenants = ref([])
 const properties = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
-const showQuickLeaseModal = ref(false)
 const saving = ref(false)
 const editingTenant = ref(null)
-const selectedTenantForLease = ref(null)
 
 const filters = reactive({
   search: '',
@@ -392,18 +277,9 @@ const tenantForm = reactive({
   phone: ''
 })
 
-const quickLeaseForm = reactive({
-  propertyId: '',
-  startDate: '',
-  endDate: '',
-  rentAmount: 0,
-  charges: 0
-})
 
-// Computed: Available properties (status = disponible)
-const availableProperties = computed(() => {
-  return properties.value.filter(p => p.status === 'disponible')
-})
+
+
 
 const loadTenants = async () => {
   loading.value = true
@@ -546,70 +422,5 @@ watch(showDialog, (isOpen) => {
   }
 })
 
-// Quick Lease Functions
-const getDefaultStartDate = () => {
-  const today = new Date()
-  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  return nextMonth.toISOString().split('T')[0]
-}
 
-const getDefaultEndDate = (startDate = null) => {
-  const start = startDate ? new Date(startDate) : new Date(getDefaultStartDate())
-  const end = new Date(start.getFullYear() + 1, start.getMonth(), start.getDate())
-  return end.toISOString().split('T')[0]
-}
-
-const openQuickLeaseModal = (tenant) => {
-  selectedTenantForLease.value = tenant
-  quickLeaseForm.propertyId = ''
-  quickLeaseForm.startDate = getDefaultStartDate()
-  quickLeaseForm.endDate = getDefaultEndDate()
-  quickLeaseForm.rentAmount = 0
-  quickLeaseForm.charges = 0
-  showQuickLeaseModal.value = true
-}
-
-const onPropertySelected = () => {
-  if (quickLeaseForm.propertyId) {
-    const property = properties.value.find(p => p.id === quickLeaseForm.propertyId)
-    if (property) {
-      quickLeaseForm.rentAmount = property.currentRent || 0
-    }
-  }
-}
-
-const onStartDateChanged = () => {
-  if (quickLeaseForm.startDate) {
-    quickLeaseForm.endDate = getDefaultEndDate(quickLeaseForm.startDate)
-  }
-}
-
-const createQuickLease = async () => {
-  if (!quickLeaseForm.propertyId || !quickLeaseForm.startDate || !quickLeaseForm.rentAmount) {
-    toast.error('Veuillez remplir tous les champs obligatoires')
-    return
-  }
-
-  saving.value = true
-  try {
-    await api.post('/api/leases', {
-      tenantId: selectedTenantForLease.value.id,
-      propertyId: quickLeaseForm.propertyId,
-      startDate: quickLeaseForm.startDate,
-      endDate: quickLeaseForm.endDate || null,
-      rentAmount: quickLeaseForm.rentAmount,
-      charges: quickLeaseForm.charges || 0,
-      status: 'actif'
-    })
-
-    toast.success('Bail créé avec succès')
-    showQuickLeaseModal.value = false
-    await loadTenants() // Refresh to show updated status
-  } catch (error) {
-    console.error('Error creating lease:', error)
-    toast.error(error.response?.data?.message || 'Erreur lors de la création du bail')
-  } finally {
-    saving.value = false
-  }
-}
 </script>

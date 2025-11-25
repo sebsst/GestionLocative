@@ -1,0 +1,213 @@
+/* ============================================
+   AMÉLIORATION GLOBALE DES FORMULAIRES
+   ============================================ */
+
+/* Labels de formulaire - Plus petits et espacés */
+.form-control .label {
+    padding-bottom: 0.75rem;
+    /* Plus d'espace entre label et input */
+    padding-top: 0.75rem;
+}
+
+.label-text {
+    font-size: 0.875rem;
+    /* 14px - plus petit */
+    font-weight: 500;
+    color: hsl(var(--bc) / 0.7);
+    /* Légèrement grisé */
+    letter-spacing: 0.025em;
+}
+
+/* Inputs, selects, textareas - Plus visibles */
+.input,
+.select,
+.textarea,
+.file-input {
+    border-width: 1px !important;
+    /* Bordure plus fine (1px) */
+    border-color: hsl(var(--bc) / 0.2) !important;
+    /* Bordure visible */
+    background-color: hsl(var(--b1)) !important;
+    /* Fond blanc/clair */
+    transition: all 0.2s ease;
+    font-size: 0.9375rem;
+    /* 15px - légèrement plus grand */
+    padding-left: 1rem !important;
+    /* Marge gauche interne */
+    padding-right: 1rem !important;
+    /* Marge droite interne */
+    opacity: 1 !important;
+}
+
+/* État focus - Très visible */
+.input:focus,
+.select:focus,
+.textarea:focus,
+.file-input:focus {
+    border-color: hsl(var(--p)) !important;
+    /* Bordure primaire */
+    box-shadow: 0 0 0 3px hsl(var(--p) / 0.1) !important;
+    /* Halo de focus */
+    outline: none;
+    background-color: hsl(var(--b1)) !important;
+}
+
+/* État hover - Feedback visuel */
+.input:hover:not(:focus),
+.select:hover:not(:focus),
+.textarea:hover:not(:focus),
+.file-input:hover:not(:focus) {
+    border-color: hsl(var(--bc) / 0.3) !important;
+}
+
+/* Espacement entre les form-control */
+.form-control+.form-control {
+    margin-top: 0.75rem;
+    /* Plus d'espace entre les champs */
+}
+
+/* Grilles de formulaires - Espacement */
+.grid .form-control {
+    margin-top: 0 !important;
+    /* Pas de margin top dans les grilles */
+}
+
+/* Espacement entre les grilles elles-mêmes */
+.grid+.form-control,
+.form-control+.grid,
+.grid+.grid {
+    margin-top: 0.75rem;
+}
+
+/* Placeholder plus visible */
+.input::placeholder,
+.textarea::placeholder {
+    color: hsl(var(--bc) / 0.4);
+    font-style: italic;
+}
+
+/* Select - Flèche plus visible */
+.select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.5em 1.5em;
+}
+
+/* Options des select - Fond OPAQUE et COULEUR FIXE */
+/* Fallback pour tous les thèmes */
+.select option,
+.select optgroup {
+    background-color: #ffffff !important;
+    /* Blanc par défaut */
+    color: #000000 !important;
+    /* Noir par défaut */
+    padding: 0.5rem 1rem;
+}
+
+/* Spécifique pour le thème dark si détecté par attribut */
+[data-theme='dark'] .select option,
+[data-theme='dark'] .select optgroup {
+    background-color: #1d232a !important;
+    /* Couleur de fond dark DaisyUI */
+    color: #a6adbb !important;
+    /* Couleur texte dark DaisyUI */
+}
+
+/* Spécifique pour le thème light si détecté par attribut */
+[data-theme='light'] .select option,
+[data-theme='light'] .select optgroup {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}
+
+/* Textarea - Hauteur minimale */
+.textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* File input - Plus visible */
+.file-input {
+    cursor: pointer;
+}
+
+.file-input::file-selector-button {
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: hsl(var(--b2));
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.file-input::file-selector-button:hover {
+    background-color: hsl(var(--b3));
+}
+
+/* Checkbox et Radio - Plus grands */
+.checkbox,
+.radio {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-width: 2px;
+}
+
+/* Labels avec checkbox/radio - Meilleur alignement */
+.label.cursor-pointer {
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+/* Messages d'erreur/aide - Plus visibles */
+.label-text-alt {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    color: hsl(var(--bc) / 0.5);
+}
+
+/* États d'erreur */
+.input-error,
+.select-error,
+.textarea-error {
+    border-color: hsl(var(--er)) !important;
+}
+
+.input-error:focus,
+.select-error:focus,
+.textarea-error:focus {
+    box-shadow: 0 0 0 3px hsl(var(--er) / 0.1) !important;
+}
+
+/* États de succès */
+.input-success,
+.select-success,
+.textarea-success {
+    border-color: hsl(var(--su)) !important;
+}
+
+/* Disabled state - Plus visible */
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+    background-color: hsl(var(--b2)) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Amélioration des modals - Espacement */
+.modal-box .space-y-4>*+* {
+    margin-top: 1rem !important;
+}
+
+/* Grilles dans les modals - Gap cohérent */
+.modal-box .grid {
+    gap: 1rem;
+}
+
+/* Form dans modal - Padding cohérent */
+.modal-box form {
+    padding: 0.5rem 0;
+}

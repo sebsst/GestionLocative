@@ -19,6 +19,7 @@ import Quote from './Quote.js';
 import PropertyRentHistory from './PropertyRentHistory.js';
 import FiscalDeclaration from './FiscalDeclaration.js';
 import Document from './Document.js';
+import LeaseDocument from './LeaseDocument.js';
 
 // Property associations
 Property.belongsTo(Property, { as: 'building', foreignKey: 'buildingId' });
@@ -96,6 +97,10 @@ ChargeRegularizationDetail.belongsTo(ChargeRegularization, { foreignKey: 'regula
 Property.hasMany(Document, { foreignKey: 'propertyId', as: 'documents' });
 Document.belongsTo(Property, { foreignKey: 'propertyId' });
 
+// LeaseDocument associations
+Lease.hasMany(LeaseDocument, { foreignKey: 'leaseId', as: 'documents' });
+LeaseDocument.belongsTo(Lease, { foreignKey: 'leaseId' });
+
 // LeaseTenant associations (many-to-many between Lease and Tenant)
 Lease.hasMany(LeaseTenant, { foreignKey: 'leaseId', as: 'leaseTenantsRelations' });
 LeaseTenant.belongsTo(Lease, { foreignKey: 'leaseId' });
@@ -124,5 +129,6 @@ export {
   Quote,
   PropertyRentHistory,
   FiscalDeclaration,
-  Document
+  Document,
+  LeaseDocument
 };

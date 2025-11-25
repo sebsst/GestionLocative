@@ -1,10 +1,10 @@
 <template>
-  <div class="p-8">
+  <div class="p-4">
     <!-- En-tête -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Biens immobiliers</h1>
-        <p class="text-base-content/70 mt-1">Gestion de votre patrimoine immobilier</p>
+        <h1 class="text-2xl font-bold">Biens immobiliers</h1>
+        <p class="text-sm text-base-content/70">Gestion de votre patrimoine immobilier</p>
       </div>
       <button
         @click="openNewPropertyDialog"
@@ -18,8 +18,8 @@
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-3 px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
@@ -62,8 +62,8 @@
     </div>
 
      <!-- View Toggle -->
-     <div v-if="properties.length > 0" class="flex items-center justify-between mt-6 mb-4">
-       <h2 class="text-xl font-semibold">Propriétés</h2>
+     <div v-if="properties.length > 0" class="flex items-center justify-between mt-3 mb-2">
+       <h2 class="text-lg font-semibold">Propriétés</h2>
                  <div class="flex gap-2">
          <button
            @click="viewMode = 'table'"
@@ -89,7 +89,7 @@
      </div>
 
      <!-- Loading -->
-     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
        <SkeletonCard v-for="i in 8" :key="i" />
      </div>
 
@@ -112,7 +112,7 @@
           <tbody>
             <template v-for="property in organizedProperties" :key="property.id">
               <!-- Immeuble ou propriété indépendante -->
-               <tr class="hover h-6" :class="{ 'font-semibold': property.type === 'immeuble' }">
+               <tr class="hover" :class="{ 'font-semibold': property.type === 'immeuble' }">
                 <td>
                   <div class="flex items-center gap-3">
                     <div class="avatar placeholder">
@@ -181,7 +181,7 @@
               </tr>
 
               <!-- Appartements de l'immeuble -->
-               <tr v-for="apartment in property.apartments" :key="apartment.id" class="hover h-6 bg-base-200/30">
+               <tr v-for="apartment in property.apartments" :key="apartment.id" class="hover bg-base-200/30">
                 <td>
                   <div class="flex items-center gap-3 pl-8">
                     <svg class="w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,14 +249,14 @@
       </div>
      </div>
 
-       <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+       <div v-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
          <div
            v-for="property in properties"
            :key="property.id"
            @click="viewProperty(property)"
            class="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-base-200 group"
          >
-           <div class="card-body p-3">
+           <div class="card-body p-2">
              <!-- Header: Status & Type -->
              <div class="flex justify-between items-start mb-1">
                <div class="badge badge-sm" :class="getStatusBadgeClass(property.status)">

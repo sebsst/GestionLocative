@@ -8,6 +8,8 @@ import router from './router'
 
 // Tailwind CSS + DaisyUI
 import './assets/main.css'
+// Améliorations globales des formulaires
+import './assets/form-improvements.css'
 
 // Initialiser le thème DaisyUI avant le montage de l'app
 const savedTheme = localStorage.getItem('theme') || 'light'

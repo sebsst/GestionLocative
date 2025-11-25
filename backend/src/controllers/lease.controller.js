@@ -1,4 +1,4 @@
-import { Lease, Property, Tenant, LeaseOccupant, LeaseOccupancyPeriod, LeaseTenant } from '../models/index.js';
+import { Lease, Property, Tenant, LeaseOccupant, LeaseOccupancyPeriod, LeaseTenant, LeaseRentPeriod, LeaseDocument } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { Op } from 'sequelize';
 
@@ -306,3 +306,104 @@ const closeLeaseAssociations = async (leaseId, endDate) => {
     }
   );
 };
+
+/**
+ * Close a lease with closure details
+ */
+export const closeLease = async (req, res, next) => {
+  try {
+    const { endDate, closureReason, closureNotes, depositReturned, depositReturnedDate } = req.body;
+    const lease = await Lease.findByPk(req.params.id);
+
+    if (!lease) {
+      throw new AppError('Bail non trouvé', 404);
+    }
+
+    if (lease.status === 'termine') {
+      throw new AppError('Ce bail est déjà clôturé', 400);
+    }
+
+    const actualEndDate = endDate || new Date();
+
+    await lease.update({
+      endDate: actualEndDate,
+      status: 'termine',
+      closureReason: closureReason || null,
+      closureNotes: closureNotes || null,
+      depositReturned: depositReturned || false,
+      depositReturnedDate: depositReturnedDate || null
+    });
+
+    await closeLeaseAssociations(lease.id, actualEndDate);
+
+    // Mettre à jour le statut du bien
+    await Property.update(
+      { status: 'disponible' },
+      { where: { id: lease.propertyId } }
+    );
+
+    const closedLease = await Lease.findByPk(lease.id, {
+      include: [
+        { model: Property },
+        { model: Tenant }
+      ]
+    });
+
+    res.json({
+      success: true,
+      message: 'Bail clôturé avec succès',
+      data: closedLease
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get complete history of a lease
+ */
+export const getLeaseHistory = async (req, res, next) => {
+  try {
+    const lease = await Lease.findByPk(req.params.id, {
+      include: [
+        { model: Property },
+        { model: Tenant }
+      ]
+    });
+
+    if (!lease) {
+      throw new AppError('Bail non trouvé', 404);
+    }
+
+    // Get rent periods
+    const rentPeriods = await LeaseRentPeriod.findAll({
+      where: { leaseId: req.params.id },
+      order: [['startDate', 'ASC']]
+    });
+
+    // Get occupancy periods
+    const occupancyPeriods = await LeaseOccupancyPeriod.findAll({
+      where: { leaseId: req.params.id },
+      order: [['startDate', 'ASC']]
+    });
+
+    // Get documents
+    const documents = await LeaseDocument.findAll({
+      where: { leaseId: req.params.id },
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        lease,
+        rentPeriods,
+        occupancyPeriods,
+        documents
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
