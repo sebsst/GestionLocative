@@ -17,5 +17,7 @@ router.post('/:id/auto-distribute', chargeController.autoDistributeCharge);
 router.post('/:id/distributions', chargeController.saveDistributions);
 router.delete('/:id/distributions', chargeController.deleteDistributions);
 router.get('/:id/distributions', chargeController.getDistributions);
+router.get('/:id/calculation-details', chargeController.getCalculationDetails);
+
 
 export default router;

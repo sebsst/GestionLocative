@@ -5,7 +5,8 @@ import { Op } from 'sequelize';
 export const getAll = async (req, res, next) => {
   try {
     const { search } = req.query;
-    const where = {};
+    const userId = req.userId;
+    const where = { userId }; // Filter by userId
 
     if (search) {
       where[Op.or] = [
@@ -37,7 +38,13 @@ export const getAll = async (req, res, next) => {
 
 export const getOne = async (req, res, next) => {
   try {
-    const tenant = await Tenant.findByPk(req.params.id, {
+    const userId = req.userId;
+
+    const tenant = await Tenant.findOne({
+      where: {
+        id: req.params.id,
+        userId // Only get tenant if owned by user
+      },
       include: [
         {
           model: Lease,
@@ -65,7 +72,15 @@ export const getOne = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
-    const tenant = await Tenant.create(req.body);
+    const userId = req.userId;
+
+    // Add userId to tenant data
+    const tenantData = {
+      ...req.body,
+      userId
+    };
+
+    const tenant = await Tenant.create(tenantData);
 
     res.status(201).json({
       success: true,
@@ -78,10 +93,17 @@ export const create = async (req, res, next) => {
 
 export const update = async (req, res, next) => {
   try {
-    const tenant = await Tenant.findByPk(req.params.id);
+    const userId = req.userId;
+
+    const tenant = await Tenant.findOne({
+      where: {
+        id: req.params.id,
+        userId // Only update if owned by user
+      }
+    });
 
     if (!tenant) {
-      throw new AppError('Locataire non trouvé', 404);
+      throw new AppError('Locataire non trouvé ou non autorisé', 404);
     }
 
     await tenant.update(req.body);
@@ -97,10 +119,17 @@ export const update = async (req, res, next) => {
 
 export const remove = async (req, res, next) => {
   try {
-    const tenant = await Tenant.findByPk(req.params.id);
+    const userId = req.userId;
+
+    const tenant = await Tenant.findOne({
+      where: {
+        id: req.params.id,
+        userId // Only delete if owned by user
+      }
+    });
 
     if (!tenant) {
-      throw new AppError('Locataire non trouvé', 404);
+      throw new AppError('Locataire non trouvé ou non autorisé', 404);
     }
 
     await tenant.destroy();

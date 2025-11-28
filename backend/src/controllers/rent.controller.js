@@ -87,7 +87,13 @@ export const getAll = async (req, res, next) => {
     const rents = await Rent.findAll({
       where,
       include: includeOptions,
-      order: [['year', 'DESC'], ['month', 'DESC']]
+      order: [
+        ['year', 'DESC'],
+        ['month', 'DESC'],
+        [{ model: Lease }, { model: Tenant }, 'lastName', 'ASC'],
+        [{ model: Lease }, { model: Tenant }, 'firstName', 'ASC'],
+        [{ model: Lease }, { model: Property }, 'name', 'ASC']
+      ]
     });
 
     res.json({

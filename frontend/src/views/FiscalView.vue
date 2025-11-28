@@ -187,13 +187,34 @@
                 <label class="label">
                   <span class="label-text">Case 224 - Dépenses de réparation et d'entretien</span>
                 </label>
-                <input
-                  v-model.number="declaration.depensesReparation"
-                  type="number"
-                  step="0.01"
-                  class="input input-bordered input-sm"
-                  @change="saveDeclaration"
-                />
+                <div class="alert alert-info mb-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div class="text-sm">
+                    <p class="font-semibold">Travaux calculés depuis les travaux éligibles</p>
+                    <p>Total des travaux éligibles : {{ formatCurrency(calculatedWorksTotal) }}</p>
+                    <p class="text-xs opacity-70">{{ eligibleWorksCount }} travaux éligibles trouvés pour {{ selectedYear }}</p>
+                  </div>
+                </div>
+                <div class="join w-full">
+                  <input
+                    v-model.number="declaration.depensesReparation"
+                    type="number"
+                    step="0.01"
+                    class="input input-bordered input-sm join-item flex-1"
+                    @change="saveDeclaration"
+                  />
+                  <button
+                    @click="useCalculatedWorks"
+                    class="btn btn-primary btn-sm join-item"
+                    title="Utiliser le total des travaux calculés"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div class="form-control">
@@ -447,6 +468,7 @@ const selectedYear = ref(new Date().getFullYear())
 const declaration = ref(null)
 const allDeclarations = ref([])
 const rents = ref([])
+const works = ref([])
 
 const years = computed(() => {
   const currentYear = new Date().getFullYear()
@@ -466,6 +488,68 @@ const calculatedRentalIncome = computed(() => {
 
   // Sum up all paid rents for the year using paidAmount
   return yearRents.reduce((sum, rent) => sum + parseFloat(rent.paidAmount || 0), 0)
+})
+
+const calculatedWorksTotal = computed(() => {
+  if (!works.value || works.value.length === 0) return 0
+  
+  // Filter works for the selected year that are fiscal deductible and paid
+  const yearWorks = works.value.filter(work => {
+    // Only include works that are fiscal deductible
+    if (!work.isFiscalDeductible) return false
+    
+    // Only include works that are paid (status 'paye')
+    if (work.status !== 'paye') return false
+    
+    // Check if the work was paid in the selected year
+    if (work.paymentDate) {
+      const paymentYear = new Date(work.paymentDate).getFullYear()
+      if (paymentYear === selectedYear.value) return true
+    }
+    
+    // If no payment date, check work date
+    if (work.workDate) {
+      const workYear = new Date(work.workDate).getFullYear()
+      if (workYear === selectedYear.value) return true
+    }
+    
+    // If no payment date or work date, check estimated date
+    if (work.estimatedDate) {
+      const estimatedYear = new Date(work.estimatedDate).getFullYear()
+      if (estimatedYear === selectedYear.value) return true
+    }
+    
+    return false
+  })
+  
+  // Sum up all eligible works using amount (or estimatedAmount if amount is not set)
+  return yearWorks.reduce((sum, work) => sum + parseFloat(work.amount || work.estimatedAmount || 0), 0)
+})
+
+const eligibleWorksCount = computed(() => {
+  if (!works.value || works.value.length === 0) return 0
+  
+  return works.value.filter(work => {
+    if (!work.isFiscalDeductible) return false
+    if (work.status !== 'paye') return false
+    
+    if (work.paymentDate) {
+      const paymentYear = new Date(work.paymentDate).getFullYear()
+      if (paymentYear === selectedYear.value) return true
+    }
+    
+    if (work.workDate) {
+      const workYear = new Date(work.workDate).getFullYear()
+      if (workYear === selectedYear.value) return true
+    }
+    
+    if (work.estimatedDate) {
+      const estimatedYear = new Date(work.estimatedDate).getFullYear()
+      if (estimatedYear === selectedYear.value) return true
+    }
+    
+    return false
+  }).length
 })
 
 const totalCharges = computed(() => {
@@ -522,11 +606,27 @@ const loadRents = async () => {
   }
 }
 
+const loadWorks = async () => {
+  try {
+    const response = await api.get('/api/works')
+    works.value = response.data.data || []
+  } catch (error) {
+    console.error('Error loading works:', error)
+  }
+}
+
 const useCalculatedIncome = async () => {
   if (!declaration.value) return
   declaration.value.revenuBrut = calculatedRentalIncome.value
   await saveDeclaration()
   toast.success('Revenus mis à jour depuis les loyers')
+}
+
+const useCalculatedWorks = async () => {
+  if (!declaration.value) return
+  declaration.value.depensesReparation = calculatedWorksTotal.value
+  await saveDeclaration()
+  toast.success('Dépenses de travaux mises à jour')
 }
 
 const loadDeclarationById = async (id) => {
@@ -728,5 +828,6 @@ onMounted(async () => {
   await loadDeclaration()
   await loadAllDeclarations()
   await loadRents()
+  await loadWorks()
 })
 </script>

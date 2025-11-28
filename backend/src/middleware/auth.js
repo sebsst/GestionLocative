@@ -14,6 +14,7 @@ export const authenticate = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
+      req.userId = decoded.id; // Inject userId for multi-user support
       next();
     } catch (error) {
       throw new AppError('Token invalide ou expiré', 401);

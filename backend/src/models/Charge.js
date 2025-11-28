@@ -59,6 +59,10 @@ const Charge = sequelize.define('Charge', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
   invoice: {
     type: DataTypes.STRING,
     allowNull: true

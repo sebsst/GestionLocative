@@ -1,58 +1,40 @@
 <template>
-  <div class="p-8">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold">Répartition des charges</h1>
-      <p class="text-base-content/70 mt-1">Visualisez la répartition des charges d'immeuble par appartement et locataire</p>
+  <div class="p-4">
+    <div class="mb-4">
+      <h1 class="text-2xl font-bold">Répartition des charges</h1>
+      <p class="text-sm text-base-content/70">Visualisez la répartition des charges d'immeuble par appartement et locataire</p>
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Filtre par année -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Année</span>
-            </label>
-            <select v-model="selectedYear" class="select select-bordered" @change="loadData">
-              <option v-for="year in availableYears" :key="year" :value="year">
-                {{ year }}
-              </option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select v-model="selectedYear" class="select select-bordered select-sm w-full" @change="loadData">
+            <option v-for="year in availableYears" :key="year" :value="year">
+              {{ year }}
+            </option>
+          </select>
 
-          <!-- Filtre par immeuble -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Immeuble</span>
-            </label>
-            <select v-model="selectedBuilding" class="select select-bordered" @change="loadData">
-              <option value="">Tous les immeubles</option>
-              <option v-for="building in buildings" :key="building.id" :value="building.id">
-                {{ building.name }}
-              </option>
-            </select>
-          </div>
+          <select v-model="selectedBuilding" class="select select-bordered select-sm w-full" @change="loadData">
+            <option value="">Tous les immeubles</option>
+            <option v-for="building in buildings" :key="building.id" :value="building.id">
+              {{ building.name }}
+            </option>
+          </select>
 
-          <!-- Filtre par type de charge -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Type de charge</span>
-            </label>
-            <select v-model="selectedType" class="select select-bordered" @change="loadData">
-              <option value="">Tous les types</option>
-              <option value="eau">Eau</option>
-              <option value="electricite">Électricité</option>
-              <option value="taxe_ordures">Taxe ordures ménagères</option>
-              <option value="entretien">Entretien</option>
-              <option value="assurance">Assurance</option>
-              <option value="taxe_fonciere">Taxe foncière</option>
-              <option value="jardin">Entretien jardin</option>
-              <option value="chauffage">Chauffage</option>
-              <option value="copropriete">Copropriété</option>
-              <option value="autre">Autre</option>
-            </select>
-          </div>
+          <select v-model="selectedType" class="select select-bordered select-sm w-full" @change="loadData">
+            <option value="">Tous les types</option>
+            <option value="eau">Eau</option>
+            <option value="electricite">Électricité</option>
+            <option value="taxe_ordures">Taxe ordures ménagères</option>
+            <option value="entretien">Entretien</option>
+            <option value="assurance">Assurance</option>
+            <option value="taxe_fonciere">Taxe foncière</option>
+            <option value="jardin">Entretien jardin</option>
+            <option value="chauffage">Chauffage</option>
+            <option value="copropriete">Copropriété</option>
+            <option value="autre">Autre</option>
+          </select>
         </div>
       </div>
     </div>
@@ -65,34 +47,34 @@
     <!-- Content -->
     <div v-else class="space-y-6">
       <!-- Statistiques globales -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
         <div class="stats shadow">
-          <div class="stat">
-            <div class="stat-title">Total Charges</div>
+          <div class="stat py-3 px-4">
+            <div class="stat-title text-xs">Total Charges</div>
             <div class="stat-value text-2xl">{{ formatCurrency(totalCharges) }}</div>
             <div class="stat-desc">{{ buildingCharges.length }} charge(s)</div>
           </div>
         </div>
 
         <div class="stats shadow bg-success text-success-content">
-          <div class="stat">
-            <div class="stat-title text-success-content/70">Appartements</div>
+          <div class="stat py-3 px-4">
+            <div class="stat-title text-success-content/70 text-xs">Appartements</div>
             <div class="stat-value text-2xl">{{ totalApartments }}</div>
             <div class="stat-desc text-success-content/70">{{ activeLeases.length }} location(s) active(s)</div>
           </div>
         </div>
 
         <div class="stats shadow bg-info text-info-content">
-          <div class="stat">
-            <div class="stat-title text-info-content/70">Par appartement</div>
+          <div class="stat py-3 px-4">
+            <div class="stat-title text-info-content/70 text-xs">Par appartement</div>
             <div class="stat-value text-2xl">{{ formatCurrency(averagePerApartment) }}</div>
             <div class="stat-desc text-info-content/70">Moyenne</div>
           </div>
         </div>
 
         <div class="stats shadow bg-warning text-warning-content">
-          <div class="stat">
-            <div class="stat-title text-warning-content/70">Par locataire</div>
+          <div class="stat py-3 px-4">
+            <div class="stat-title text-warning-content/70 text-xs">Par locataire</div>
             <div class="stat-value text-2xl">{{ formatCurrency(averagePerTenant) }}</div>
             <div class="stat-desc text-warning-content/70">Moyenne</div>
           </div>

@@ -16,6 +16,27 @@ export const usePropertyStore = defineStore('property', {
         error: null
     }),
 
+    getters: {
+        canEdit: (state) => {
+            if (!state.property) return false
+            return state.property.canEdit !== false
+        },
+        canDelete: (state) => {
+            if (!state.property) return false
+            return state.property.canDelete !== false
+        },
+        canInvite: (state) => {
+            if (!state.property) return false
+            return state.property.canInvite !== false
+        },
+        isShared: (state) => {
+            return state.property?.isShared || false
+        },
+        accessRole: (state) => {
+            return state.property?.accessRole || 'owner'
+        }
+    },
+
     actions: {
         async fetchProperty(id) {
             this.loading = true

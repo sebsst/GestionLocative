@@ -1,9 +1,9 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="p-4">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Régularisation des Charges</h1>
-        <p class="text-base-content/70 mt-1">Calculez et générez les décomptes annuels de charges</p>
+        <h1 class="text-2xl font-bold">Régularisation des charges</h1>
+        <p class="text-sm text-base-content/70">Calculez et générez les décomptes annuels de charges</p>
       </div>
       <button @click="showCalculateDialog = true" class="btn btn-primary gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,73 +14,58 @@
     </div>
 
     <!-- Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
       <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Total régularisations</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-xs">Total régularisations</div>
           <div class="stat-value text-2xl">{{ regularizations.length }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-success text-success-content">
-        <div class="stat">
-          <div class="stat-title text-success-content/70">Envoyées</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-success-content/70 text-xs">Envoyées</div>
           <div class="stat-value text-2xl">{{ sentCount }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-warning text-warning-content">
-        <div class="stat">
-          <div class="stat-title text-warning-content/70">Brouillons</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-warning-content/70 text-xs">Brouillons</div>
           <div class="stat-value text-2xl">{{ draftCount }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-info text-info-content">
-        <div class="stat">
-          <div class="stat-title text-info-content/70">Montant total</div>
-          <div class="stat-value text-xl">{{ formatCurrency(totalRegularization) }}</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-info-content/70 text-xs">Montant total</div>
+          <div class="stat-value text-2xl">{{ formatCurrency(totalRegularization) }}</div>
         </div>
       </div>
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Année</span>
-            </label>
-            <select v-model="filters.year" class="select select-bordered" @change="loadRegularizations">
-              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select v-model="filters.year" class="select select-bordered select-sm w-full" @change="loadRegularizations">
+            <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+          </select>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Statut</span>
-            </label>
-            <select v-model="filters.status" class="select select-bordered" @change="loadRegularizations">
-              <option value="">Tous</option>
-              <option value="draft">Brouillon</option>
-              <option value="sent">Envoyé</option>
-              <option value="paid">Payé</option>
-              <option value="refunded">Remboursé</option>
-            </select>
-          </div>
+          <select v-model="filters.status" class="select select-bordered select-sm w-full" @change="loadRegularizations">
+            <option value="">Tous les statuts</option>
+            <option value="draft">Brouillon</option>
+            <option value="sent">Envoyé</option>
+            <option value="paid">Payé</option>
+            <option value="refunded">Remboursé</option>
+          </select>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Bail</span>
-            </label>
-            <select v-model="filters.leaseId" class="select select-bordered" @change="loadRegularizations">
-              <option value="">Tous les baux</option>
-              <option v-for="lease in activeLeases" :key="lease.id" :value="lease.id">
-                {{ lease.Tenant?.firstName }} {{ lease.Tenant?.lastName }} - {{ lease.Property?.name }}
-              </option>
-            </select>
-          </div>
+          <select v-model="filters.leaseId" class="select select-bordered select-sm w-full" @change="loadRegularizations">
+            <option value="">Tous les baux</option>
+            <option v-for="lease in activeLeases" :key="lease.id" :value="lease.id">
+              {{ lease.Tenant?.firstName }} {{ lease.Tenant?.lastName }} - {{ lease.Property?.name }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
@@ -96,26 +81,26 @@
         <table class="table table-zebra">
           <thead class="bg-base-200">
             <tr class="border-b-2 border-base-300">
-              <th>Année</th>
-              <th>Locataire</th>
-              <th>Bien</th>
-              <th>Provisions</th>
-              <th>Charges réelles</th>
-              <th>Régularisation</th>
-              <th>Statut</th>
-              <th>Actions</th>
+              <th class="border-r border-base-300">Année</th>
+              <th class="border-r border-base-300">Locataire</th>
+              <th class="border-r border-base-300">Bien</th>
+              <th class="text-right border-r border-base-300">Provisions</th>
+              <th class="text-right border-r border-base-300">Charges réelles</th>
+              <th class="text-right border-r border-base-300">Régularisation</th>
+              <th class="text-center border-r border-base-300">Statut</th>
+              <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="reg in regularizations" :key="reg.id">
-              <td class="font-semibold">{{ reg.year }}</td>
-              <td>
+            <tr v-for="reg in regularizations" :key="reg.id" class="hover cursor-pointer" @click="viewRegularization(reg)">
+              <td class="font-semibold border-r border-base-300">{{ reg.year }}</td>
+              <td class="border-r border-base-300">
                 {{ reg.Lease?.Tenant?.firstName }} {{ reg.Lease?.Tenant?.lastName }}
               </td>
-              <td>{{ reg.Lease?.Property?.name }}</td>
-              <td>{{ formatCurrency(reg.totalProvisions) }}</td>
-              <td>{{ formatCurrency(reg.totalRealCharges) }}</td>
-              <td>
+              <td class="border-r border-base-300">{{ reg.Lease?.Property?.name }}</td>
+              <td class="text-right border-r border-base-300">{{ formatCurrency(reg.totalProvisions) }}</td>
+              <td class="text-right border-r border-base-300">{{ formatCurrency(reg.totalRealCharges) }}</td>
+              <td class="text-right border-r border-base-300">
                 <span
                   :class="{
                     'text-success font-bold': parseFloat(reg.regularizationAmount) > 0,
@@ -126,16 +111,16 @@
                   {{ formatCurrency(reg.regularizationAmount) }}
                 </span>
               </td>
-              <td>
-                <span class="badge" :class="getStatusBadge(reg.status)">
+              <td class="text-center border-r border-base-300">
+                <span class="badge badge-sm" :class="getStatusBadge(reg.status)">
                   {{ getStatusLabel(reg.status) }}
                 </span>
               </td>
-              <td>
-                <div class="flex gap-2">
+              <td @click.stop>
+                <div class="flex items-center justify-center gap-1">
                   <button
                     @click="viewRegularization(reg)"
-                    class="btn btn-sm btn-ghost"
+                    class="btn btn-ghost btn-xs"
                     title="Voir détails"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +130,7 @@
                   </button>
                   <button
                     @click="generatePDF(reg)"
-                    class="btn btn-sm btn-ghost"
+                    class="btn btn-ghost btn-xs"
                     title="Générer PDF"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +140,7 @@
                   <button
                     v-if="reg.status === 'draft'"
                     @click="deleteRegularization(reg.id)"
-                    class="btn btn-sm btn-ghost text-error"
+                    class="btn btn-ghost btn-xs text-error"
                     title="Supprimer"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

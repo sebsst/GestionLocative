@@ -1,9 +1,10 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="p-4">
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Gestion des travaux</h1>
-        <p class="text-base-content/70 mt-1">Suivi et gestion de vos interventions</p>
+        <h1 class="text-2xl font-bold">Travaux</h1>
+        <p class="text-sm text-base-content/70">Suivi et gestion de vos interventions</p>
       </div>
       <div class="flex gap-2">
         <button
@@ -28,78 +29,61 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
       <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Total travaux</div>
-          <div class="stat-value">{{ works.length }}</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-xs">Total travaux</div>
+          <div class="stat-value text-2xl">{{ works.length }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-info text-info-content">
-        <div class="stat">
-          <div class="stat-title text-info-content/70">Prévus</div>
-          <div class="stat-value">{{ pendingCount }}</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-info-content/70 text-xs">Prévus</div>
+          <div class="stat-value text-2xl">{{ pendingCount }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-warning text-warning-content">
-        <div class="stat">
-          <div class="stat-title text-warning-content/70">En cours</div>
-          <div class="stat-value">{{ inProgressCount }}</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-warning-content/70 text-xs">En cours</div>
+          <div class="stat-value text-2xl">{{ inProgressCount }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-success text-success-content">
-        <div class="stat">
-          <div class="stat-title text-success-content/70">Terminés</div>
-          <div class="stat-value">{{ completedCount }}</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-success-content/70 text-xs">Terminés</div>
+          <div class="stat-value text-2xl">{{ completedCount }}</div>
         </div>
       </div>
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Recherche</span>
-            </label>
-            <input
-              v-model="filters.search"
-              type="text"
-              placeholder="Nature des travaux..."
-              class="input input-bordered w-full"
-              @input="loadWorks"
-            />
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Type</span>
-            </label>
-            <select v-model="filters.type" class="select select-bordered w-full" @change="loadWorks">
-              <option value="">Tous les types</option>
-              <option v-for="type in workTypes" :key="type.value" :value="type.value">
-                {{ type.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Statut</span>
-            </label>
-            <select v-model="filters.status" class="select select-bordered w-full" @change="loadWorks">
-              <option value="">Tous les statuts</option>
-              <option value="prevu">Prévu</option>
-              <option value="en_cours">En cours</option>
-              <option value="termine">Terminé</option>
-              <option value="paye">Payé</option>
-              <option value="annule">Annulé</option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            v-model="filters.search"
+            type="text"
+            placeholder="Rechercher des travaux..."
+            class="input input-bordered input-sm w-full"
+            @input="loadWorks"
+          />
+          <select v-model="filters.type" class="select select-bordered select-sm w-full" @change="loadWorks">
+            <option value="">Tous les types</option>
+            <option v-for="type in workTypes" :key="type.value" :value="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+          <select v-model="filters.status" class="select select-bordered select-sm w-full" @change="loadWorks">
+            <option value="">Tous les statuts</option>
+            <option value="prevu">Prévu</option>
+            <option value="en_cours">En cours</option>
+            <option value="termine">Terminé</option>
+            <option value="paye">Payé</option>
+            <option value="annule">Annulé</option>
+          </select>
         </div>
       </div>
     </div>
@@ -126,13 +110,13 @@
             </tr>
           </thead>
            <tbody>
-             <tr v-for="work in works" :key="work.id" class="hover h-6 py-2">
-               <td class="py-3 px-2">
+             <tr v-for="work in works" :key="work.id" class="hover cursor-pointer" @click="editWork(work)">
+               <td class="border-r border-base-300">
                  <div class="font-medium">
                    {{ work.Property?.name }}
                  </div>
                </td>
-               <td class="py-3 px-2">
+               <td class="border-r border-base-300">
                  <div class="text-sm">
                    {{ work.nature }}
                  </div>
@@ -140,7 +124,7 @@
                    {{ work.description.substring(0, 50) }}{{ work.description.length > 50 ? '...' : '' }}
                  </div>
                </td>
-              <td class="text-center">
+              <td class="text-center border-r border-base-300">
                 <div
                   :class="getTypeBadgeClass(work.type)"
                   class="badge badge-sm"
@@ -148,7 +132,7 @@
                   {{ getTypeLabel(work.type) }}
                 </div>
               </td>
-               <td class="py-3 px-2">
+               <td class="border-r border-base-300">
                  <div class="text-sm">
                    {{ work.Artisan?.name || '-' }}
                  </div>
@@ -156,17 +140,17 @@
                    {{ work.Artisan.company }}
                  </div>
                </td>
-               <td class="text-right pr-4">
+               <td class="text-right border-r border-base-300">
                  <div class="text-sm font-medium">
                    {{ formatCurrency(work.amount || work.estimatedAmount) }}
                  </div>
                </td>
-               <td class="pl-4">
+               <td class="border-r border-base-300">
                  <div class="text-sm">
                    {{ formatDate(work.workDate || work.estimatedDate) }}
                  </div>
                </td>
-              <td class="text-center">
+              <td class="text-center border-r border-base-300">
                 <div
                   :class="getStatusBadgeClass(work.status)"
                   class="badge badge-sm"
@@ -174,7 +158,7 @@
                   {{ getStatusLabel(work.status) }}
                 </div>
                </td>
-               <td class="py-3 px-2">
+               <td @click.stop>
                   <div class="flex items-center justify-center gap-2">
                     <button
                      @click="editWork(work)"

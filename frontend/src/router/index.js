@@ -26,6 +26,12 @@ const router = createRouter({
       component: () => import('@/views/properties/PropertiesView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/shared-properties',
+      name: 'shared-properties',
+      component: () => import('@/views/properties/SharedPropertiesView.vue'),
+      meta: { requiresAuth: true }
+    },
     // Routes désactivées temporairement (vues avec PrimeVue)
     // {
     //   path: '/properties-v2',

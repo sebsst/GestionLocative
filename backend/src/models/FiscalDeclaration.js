@@ -7,6 +7,16 @@ const FiscalDeclaration = sequelize.define('FiscalDeclaration', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    },
+    onDelete: 'CASCADE',
+    comment: 'Utilisateur propriétaire de cette déclaration'
+  },
   year: {
     type: DataTypes.INTEGER,
     allowNull: false
@@ -91,7 +101,8 @@ const FiscalDeclaration = sequelize.define('FiscalDeclaration', {
   indexes: [
     {
       unique: true,
-      fields: ['year']
+      fields: ['userId', 'year'],
+      name: 'unique_user_year_declaration'
     }
   ]
 });

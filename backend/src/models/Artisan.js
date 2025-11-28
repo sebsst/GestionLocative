@@ -7,6 +7,16 @@ const Artisan = sequelize.define('Artisan', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    },
+    onDelete: 'CASCADE',
+    comment: 'Utilisateur propriétaire de cet artisan'
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false

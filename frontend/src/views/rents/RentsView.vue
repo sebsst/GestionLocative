@@ -1,127 +1,175 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="p-4">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Gestion des loyers</h1>
-        <p class="text-base-content/70 mt-1">Suivi des paiements et génération des loyers</p>
+        <h1 class="text-2xl font-bold">Loyers</h1>
+        <p class="text-sm text-base-content/70">Suivi des paiements et génération des loyers</p>
       </div>
-      <button
-        @click="showGenerateDialog = true"
-        class="btn btn-primary gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Générer les loyers du mois
-      </button>
+      <div class="flex gap-2">
+        <button
+          @click="showIRLDialog = true"
+          class="btn btn-secondary gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Réévaluation IRL
+        </button>
+        <button
+          @click="showGenerateDialog = true"
+          class="btn btn-primary gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Générer les loyers du mois
+        </button>
+      </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-      <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Total loyers</div>
-          <div class="stat-value">{{ rents.length }}</div>
-        </div>
-      </div>
-
-      <div class="stats shadow bg-warning text-warning-content">
-        <div class="stat">
-          <div class="stat-title text-warning-content/70">En attente</div>
-          <div class="stat-value">{{ pendingCount }}</div>
-        </div>
-      </div>
-
-      <div class="stats shadow bg-error text-error-content">
-        <div class="stat">
-          <div class="stat-title text-error-content/70">En retard</div>
-          <div class="stat-value">{{ lateCount }}</div>
-        </div>
-      </div>
-
-      <div class="stats shadow bg-success text-success-content">
-        <div class="stat">
-          <div class="stat-title text-success-content/70">Payés</div>
-          <div class="stat-value">{{ paidCount }}</div>
-        </div>
-      </div>
-
-      <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Montant perçu</div>
-          <div class="stat-value text-xl">{{ formatCurrency(totalPaidAmount) }}</div>
-        </div>
-      </div>
-
-      <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Montant attendu</div>
-          <div class="stat-value text-xl">{{ formatCurrency(totalExpectedAmount) }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Réévaluation IRL -->
-    <div class="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="card-title text-xl">
-              <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              Réévaluation de loyer IRL
-            </h2>
-            <p class="text-sm text-base-content/60 mt-1">
-              Calculez l'augmentation annuelle selon l'Indice de référence des loyers
-            </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+      <!-- Statuts des loyers -->
+      <div class="card bg-gradient-to-br from-base-100 to-base-200 shadow-xl border border-base-300">
+        <div class="card-body p-2">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-semibold text-base-content/70 uppercase tracking-wide">Statuts</h3>
+            <div class="badge badge-sm badge-ghost">{{ rents.length }}</div>
           </div>
-          <button @click="showIRLDialog = true" class="btn btn-primary gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Calculer
-          </button>
+          
+          <div class="space-y-2">
+            <!-- Horizontal Stacked Bar -->
+            <div class="flex w-full h-6 bg-base-300 rounded-full overflow-hidden">
+              <!-- Paid (left - green) -->
+              <div 
+                v-if="paidCount > 0"
+                class="bg-gradient-to-r from-success to-success/80 transition-all duration-500"
+                :style="{ width: `${rents.length > 0 ? (paidCount / rents.length * 100) : 0}%` }"
+                :title="`Payés: ${paidCount} (${rents.length > 0 ? ((paidCount / rents.length * 100).toFixed(1)) : 0}%)`"
+              ></div>
+              <!-- Pending (middle - yellow) -->
+              <div 
+                v-if="pendingCount > 0"
+                class="bg-gradient-to-r from-warning to-warning/80 transition-all duration-500"
+                :style="{ width: `${rents.length > 0 ? (pendingCount / rents.length * 100) : 0}%` }"
+                :title="`En attente: ${pendingCount} (${rents.length > 0 ? ((pendingCount / rents.length * 100).toFixed(1)) : 0}%)`"
+              ></div>
+              <!-- Late (right - red) -->
+              <div 
+                v-if="lateCount > 0"
+                class="bg-gradient-to-r from-error to-error/80 transition-all duration-500"
+                :style="{ width: `${rents.length > 0 ? (lateCount / rents.length * 100) : 0}%` }"
+                :title="`En retard: ${lateCount} (${rents.length > 0 ? ((lateCount / rents.length * 100).toFixed(1)) : 0}%)`"
+              ></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="grid grid-cols-3 gap-2">
+              <!-- Payés -->
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 rounded-full bg-success"></div>
+                  <span class="font-medium text-success">Payés</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="font-bold text-success">{{ paidCount }}</span>
+                  <span class="text-[10px] text-base-content/50">
+                    ({{ rents.length > 0 ? ((paidCount / rents.length * 100).toFixed(1)) : 0 }}%)
+                  </span>
+                </div>
+              </div>
+
+              <!-- En attente -->
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 rounded-full bg-warning"></div>
+                  <span class="font-medium text-warning">Attente</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="font-bold text-warning">{{ pendingCount }}</span>
+                  <span class="text-[10px] text-base-content/50">
+                    ({{ rents.length > 0 ? ((pendingCount / rents.length * 100).toFixed(1)) : 0 }}%)
+                  </span>
+                </div>
+              </div>
+
+              <!-- En retard -->
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 rounded-full bg-error"></div>
+                  <span class="font-medium text-error">Retard</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="font-bold text-error">{{ lateCount }}</span>
+                  <span class="text-[10px] text-base-content/50">
+                    ({{ rents.length > 0 ? ((lateCount / rents.length * 100).toFixed(1)) : 0 }}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Montants -->
+      <div class="card bg-gradient-to-br from-base-100 to-base-200 shadow-xl border border-base-300">
+        <div class="card-body p-2">
+          <h3 class="text-xs font-semibold text-base-content/70 uppercase tracking-wide mb-2">Montants</h3>
+          
+          <div class="flex items-center gap-2">
+            <!-- Montant perçu -->
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-info/10 border border-info/20 flex-1">
+              <div class="p-1 rounded-lg bg-info/20">
+                <svg class="w-3 h-3 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[10px] text-base-content/60 uppercase tracking-wide">Perçu</div>
+                <div class="text-sm font-bold text-info">{{ formatCurrency(totalPaidAmount) }}</div>
+              </div>
+            </div>
+
+            <!-- Montant attendu -->
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-secondary/10 border border-secondary/20 flex-1">
+              <div class="p-1 rounded-lg bg-secondary/20">
+                <svg class="w-3 h-3 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[10px] text-base-content/60 uppercase tracking-wide">Attendu</div>
+                <div class="text-sm font-bold text-secondary">{{ formatCurrency(totalExpectedAmount) }}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Année</span>
-            </label>
-            <select v-model="filters.year" class="select select-bordered w-full" @change="loadRents">
-              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select v-model="filters.year" class="select select-bordered select-sm w-full" @change="loadRents">
+            <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+          </select>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Mois</span>
-            </label>
-            <select v-model="filters.month" class="select select-bordered w-full" @change="loadRents">
-              <option value="">Tous les mois</option>
-              <option v-for="month in months" :key="month.value" :value="month.value">
-                {{ month.label }}
-              </option>
-            </select>
-          </div>
+          <select v-model="filters.month" class="select select-bordered select-sm w-full" @change="loadRents">
+            <option value="">Tous les mois</option>
+            <option v-for="month in months" :key="month.value" :value="month.value">
+              {{ month.label }}
+            </option>
+          </select>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Statut</span>
-            </label>
-            <select v-model="filters.status" class="select select-bordered w-full" @change="loadRents">
-              <option value="">Tous les statuts</option>
-              <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                {{ status.label }}
-              </option>
-            </select>
-          </div>
+          <select v-model="filters.status" class="select select-bordered select-sm w-full" @change="loadRents">
+            <option value="">Tous les statuts</option>
+            <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+              {{ status.label }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
@@ -148,41 +196,38 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rent in rents" :key="rent.id" class="hover h-6">
-              <td>
+            <tr v-for="rent in rents" :key="rent.id" class="hover cursor-pointer h-6" @click="editPayment(rent)">
+              <td class="border-r border-base-300">
                 <div class="font-medium">
                   {{ rent.Lease?.Tenant?.firstName }} {{ rent.Lease?.Tenant?.lastName }}
                 </div>
               </td>
-              <td>
+              <td class="border-r border-base-300">
                 <div class="text-sm">
                   {{ rent.Lease?.Property?.name }}
                 </div>
               </td>
-              <td>
+              <td class="border-r border-base-300">
                 <div class="text-sm">
                   {{ getMonthName(rent.month) }} {{ rent.year }}
                 </div>
               </td>
-              <td class="text-right">
+              <td class="text-right border-r border-base-300">
                 <div class="text-sm font-medium">
                   {{ formatCurrency(rent.expectedAmount) }}
                 </div>
               </td>
-              <td class="text-right">
+              <td class="text-right border-r border-base-300">
                 <div class="text-sm font-medium text-info">
                   {{ formatCurrency(rent.chargeProvisions) }}
                 </div>
-                <div class="text-xs text-base-content/50">
-                  ({{ ((parseFloat(rent.chargeProvisions) / parseFloat(rent.expectedAmount)) * 100).toFixed(0) }}%)
-                </div>
               </td>
-              <td class="text-right">
+              <td class="text-right border-r border-base-300">
                 <div class="text-sm font-medium">
                   {{ formatCurrency(rent.paidAmount) }}
                 </div>
               </td>
-              <td class="text-center">
+              <td class="text-center border-r border-base-300">
                 <div
                   :class="getBadgeClass(rent.status)"
                   class="badge badge-sm"
@@ -190,7 +235,7 @@
                   {{ getStatusLabel(rent.status) }}
                 </div>
               </td>
-              <td>
+              <td @click.stop>
                  <div class="flex items-center justify-center gap-2">
                   <button
                     v-if="rent.status !== 'paye'"

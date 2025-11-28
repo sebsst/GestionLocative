@@ -7,6 +7,16 @@ const Property = sequelize.define('Property', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    },
+    onDelete: 'CASCADE',
+    comment: 'Propriétaire principal du bien'
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false

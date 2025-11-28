@@ -15,11 +15,18 @@
       <div class="nav-section">
         <h3 class="section-title">Gestion</h3>
         <div class="card bg-base-100 shadow-sm">
-          <router-link to="/properties" class="sidebar-item" :class="{ active: $route.path.startsWith('/properties') }">
+          <router-link to="/properties" class="sidebar-item" :class="{ active: $route.path.startsWith('/properties') && !$route.path.startsWith('/shared-properties') }">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span>Biens immobiliers</span>
+          </router-link>
+
+          <router-link to="/shared-properties" class="sidebar-item" :class="{ active: $route.path === '/shared-properties' }">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span>Biens partagés</span>
           </router-link>
 
           <router-link to="/tenants" class="sidebar-item" :class="{ active: $route.path.startsWith('/tenants') }">

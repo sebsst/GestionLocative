@@ -1,13 +1,23 @@
 import { Lease, Property, Tenant, LeaseOccupant, LeaseOccupancyPeriod, LeaseTenant, LeaseRentPeriod, LeaseDocument } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { Op } from 'sequelize';
+import { canAccessProperty, canEditProperty } from '../utils/permissions.js';
 
 export const getAll = async (req, res, next) => {
   try {
     const { propertyId, tenantId, status } = req.query;
+    const userId = req.userId;
     const where = {};
 
-    if (propertyId) where.propertyId = propertyId;
+    if (propertyId) {
+      // Verify user has access to this property
+      const accessInfo = await canAccessProperty(userId, propertyId);
+      if (!accessInfo.access) {
+        throw new AppError('Vous n\'avez pas accès à ce bien', 403);
+      }
+      where.propertyId = propertyId;
+    }
+
     if (tenantId) where.tenantId = tenantId;
     if (status) where.status = status;
 
@@ -21,9 +31,18 @@ export const getAll = async (req, res, next) => {
       order: [['startDate', 'DESC']]
     });
 
+    // Filter leases to only include those for accessible properties
+    const accessibleLeases = [];
+    for (const lease of leases) {
+      const accessInfo = await canAccessProperty(userId, lease.propertyId);
+      if (accessInfo.access) {
+        accessibleLeases.push(lease);
+      }
+    }
+
     res.json({
       success: true,
-      data: leases
+      data: accessibleLeases
     });
   } catch (error) {
     next(error);
@@ -32,6 +51,8 @@ export const getAll = async (req, res, next) => {
 
 export const getOne = async (req, res, next) => {
   try {
+    const userId = req.userId;
+
     const lease = await Lease.findByPk(req.params.id, {
       include: [
         { model: Property },
@@ -42,6 +63,12 @@ export const getOne = async (req, res, next) => {
 
     if (!lease) {
       throw new AppError('Bail non trouvé', 404);
+    }
+
+    // Verify user has access to the property
+    const accessInfo = await canAccessProperty(userId, lease.propertyId);
+    if (!accessInfo.access) {
+      throw new AppError('Vous n\'avez pas accès à ce bail', 403);
     }
 
     res.json({
@@ -55,7 +82,14 @@ export const getOne = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
+    const userId = req.userId;
     const { occupants, ...leaseData } = req.body;
+
+    // Verify user can edit this property
+    const canEdit = await canEditProperty(userId, leaseData.propertyId);
+    if (!canEdit) {
+      throw new AppError('Vous n\'avez pas la permission de créer un bail pour ce bien', 403);
+    }
 
     // Vérifier si le bien est déjà loué
     const existingLease = await Lease.findOne({
@@ -118,10 +152,18 @@ export const create = async (req, res, next) => {
 
 export const update = async (req, res, next) => {
   try {
+    const userId = req.userId;
+
     const lease = await Lease.findByPk(req.params.id);
 
     if (!lease) {
       throw new AppError('Bail non trouvé', 404);
+    }
+
+    // Verify user can edit the property
+    const canEdit = await canEditProperty(userId, lease.propertyId);
+    if (!canEdit) {
+      throw new AppError('Vous n\'avez pas la permission de modifier ce bail', 403);
     }
 
     const { occupants, ...leaseData } = req.body;

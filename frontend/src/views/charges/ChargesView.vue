@@ -1,9 +1,10 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="p-4">
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Charges</h1>
-        <p class="text-base-content/70 mt-1">Gestion des charges locatives et répartition</p>
+        <h1 class="text-2xl font-bold">Charges</h1>
+        <p class="text-sm text-base-content/70">Gestion des charges locatives et répartition</p>
       </div>
       <button @click="showDialog = true" class="btn btn-primary gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,75 +15,58 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
       <div class="stats shadow">
-        <div class="stat">
-          <div class="stat-title">Total charges</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-xs">Total charges</div>
           <div class="stat-value text-2xl">{{ charges.length }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-info text-info-content">
-        <div class="stat">
-          <div class="stat-title text-info-content/70">Montant total</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-info-content/70 text-xs">Montant total</div>
           <div class="stat-value text-2xl">{{ formatCurrency(totalAmount) }}</div>
         </div>
       </div>
 
       <div class="stats shadow bg-success text-success-content">
-        <div class="stat">
-          <div class="stat-title text-success-content/70">Ce mois</div>
+        <div class="stat py-3 px-4">
+          <div class="stat-title text-success-content/70 text-xs">Ce mois</div>
           <div class="stat-value text-2xl">{{ formatCurrency(currentMonthAmount) }}</div>
         </div>
       </div>
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Recherche</span>
-            </label>
-            <input
-              v-model="filters.search"
-              type="text"
-              placeholder="Rechercher une charge..."
-              class="input input-bordered w-full"
-              @input="loadCharges"
-            />
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Type</span>
-            </label>
-            <select v-model="filters.type" class="select select-bordered w-full" @change="loadCharges">
-              <option value="">Tous les types</option>
-              <option value="eau">Eau</option>
-              <option value="electricite">Électricité</option>
-              <option value="gaz">Gaz</option>
-              <option value="taxe_ordures">Taxe ordures ménagères</option>
-              <option value="entretien">Entretien</option>
-              <option value="assurance">Assurance</option>
-              <option value="taxe_fonciere">Taxe foncière</option>
-              <option value="taxe">Taxe (autre)</option>
-              <option value="autre">Autre</option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Bien</span>
-            </label>
-            <select v-model="filters.property" class="select select-bordered w-full" @change="loadCharges">
-              <option value="">Tous les biens</option>
-              <option v-for="property in properties" :key="property.id" :value="property.id">
-                {{ property.name }}
-              </option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            v-model="filters.search"
+            type="text"
+            placeholder="Rechercher une charge..."
+            class="input input-bordered input-sm w-full"
+            @input="loadCharges"
+          />
+          <select v-model="filters.type" class="select select-bordered select-sm w-full" @change="loadCharges">
+            <option value="">Tous les types</option>
+            <option value="eau">Eau</option>
+            <option value="electricite">Électricité</option>
+            <option value="gaz">Gaz</option>
+            <option value="taxe_ordures">Taxe ordures ménagères</option>
+            <option value="entretien">Entretien</option>
+            <option value="assurance">Assurance</option>
+            <option value="taxe_fonciere">Taxe foncière</option>
+            <option value="taxe">Taxe (autre)</option>
+            <option value="autre">Autre</option>
+          </select>
+          <select v-model="filters.property" class="select select-bordered select-sm w-full" @change="loadCharges">
+            <option value="">Tous les biens</option>
+            <option v-for="property in properties" :key="property.id" :value="property.id">
+              {{ property.name }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
@@ -108,15 +92,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="charge in charges" :key="charge.id" class="hover h-6">
-              <td>
+            <tr v-for="charge in charges" :key="charge.id" class="hover cursor-pointer" @click="editCharge(charge)">
+              <td class="border-r border-base-300">
                 <div class="badge" :class="getTypeBadgeClass(charge.type)">{{ formatType(charge.type) }}</div>
               </td>
-              <td>{{ charge.name }}</td>
-              <td>{{ charge.Property?.name || 'N/A' }}</td>
-              <td>{{ formatDate(charge.date) }}</td>
-              <td class="text-right font-semibold">{{ formatCurrency(charge.amount) }}</td>
-              <td class="text-center">
+              <td class="border-r border-base-300">{{ charge.name }}</td>
+              <td class="border-r border-base-300">{{ charge.Property?.name || 'N/A' }}</td>
+              <td class="border-r border-base-300">{{ formatDate(charge.date) }}</td>
+              <td class="text-right font-semibold border-r border-base-300">{{ formatCurrency(charge.amount) }}</td>
+              <td class="text-center border-r border-base-300">
                 <div v-if="charge.distributions && charge.distributions.length > 0" class="badge badge-success gap-1">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -125,8 +109,18 @@
                 </div>
                 <div v-else class="badge badge-ghost">Non réparti</div>
               </td>
-              <td>
+              <td @click.stop>
                  <div class="flex items-center justify-center gap-2">
+                  <button
+                    v-if="charge.metadata && charge.distributionMethod === 'appartement'"
+                    @click="showCalculationDetails(charge)"
+                    class="btn btn-ghost btn-xs text-info"
+                    title="Voir le détail du calcul"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </button>
                   <button @click="openDistribution(charge)" class="btn btn-ghost btn-xs text-primary" title="Gérer la répartition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
@@ -431,6 +425,14 @@
         </div>
       </template>
     </Modal>
+
+    <!-- Modal Calculation Details -->
+    <ChargeCalculationDetailsModal
+      :show="showCalculationDetailsDialog"
+      :charge-id="selectedChargeForDetails?.id"
+      :distributions="selectedChargeForDetails?.distributions || []"
+      @close="showCalculationDetailsDialog = false"
+    />
   </div>
 </template>
 
@@ -439,6 +441,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import api from '@/services/api'
 import Modal from '@/components/ui/Modal.vue'
+import ChargeCalculationDetailsModal from '@/components/ChargeCalculationDetailsModal.vue'
+
 
 const toast = useToast()
 const charges = ref([])
@@ -447,9 +451,12 @@ const activeLeases = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
 const showDistributionDialog = ref(false)
+const showCalculationDetailsDialog = ref(false)
 const saving = ref(false)
 const editingCharge = ref(null)
 const selectedCharge = ref(null)
+const selectedChargeForDetails = ref(null)
+
 
 const filters = reactive({
   search: '',
@@ -815,6 +822,11 @@ const saveDistribution = async () => {
   } finally {
     saving.value = false
   }
+}
+
+const showCalculationDetails = (charge) => {
+  selectedChargeForDetails.value = charge
+  showCalculationDetailsDialog.value = true
 }
 
 const getMethodDescription = (method) => {

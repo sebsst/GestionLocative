@@ -126,6 +126,12 @@
                     <div>
                       <div class="font-medium flex items-center gap-2">
                         {{ property.name }}
+                        <span v-if="property.isShared" class="badge badge-sm badge-secondary gap-1">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                          Partagé
+                        </span>
                         <span v-if="property.type === 'immeuble' && property.apartments?.length" class="badge badge-sm badge-ghost">
                           {{ property.apartments.length }} appt{{ property.apartments.length > 1 ? 's' : '' }}
                         </span>
@@ -269,9 +275,16 @@
 
              <!-- Title & Address -->
              <div class="mb-2">
-               <h3 class="card-title text-base font-bold truncate block leading-tight" :title="property.name">
-                 {{ property.name }}
-               </h3>
+               <div class="flex items-center gap-2 mb-1">
+                 <h3 class="card-title text-base font-bold truncate flex-1 leading-tight" :title="property.name">
+                   {{ property.name }}
+                 </h3>
+                 <div v-if="property.isShared" class="badge badge-secondary badge-xs gap-1 flex-shrink-0">
+                   <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                   </svg>
+                 </div>
+               </div>
                <p class="text-xs text-base-content/70 truncate flex items-center gap-1 mt-0.5">
                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

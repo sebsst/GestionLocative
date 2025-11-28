@@ -1,9 +1,10 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-8">
+  <div class="p-4">
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-3xl font-bold">Locataires</h1>
-        <p class="text-base-content/70 mt-1">Gestion de vos locataires</p>
+        <h1 class="text-2xl font-bold">Locataires</h1>
+        <p class="text-sm text-base-content/70">Gestion de vos locataires</p>
       </div>
       <button
         @click="showDialog = true"
@@ -17,44 +18,27 @@
     </div>
 
     <!-- Filtres -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-      <div class="card-body">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Recherche</span>
-            </label>
-            <input
-              v-model="filters.search"
-              type="text"
-              placeholder="Nom du locataire..."
-              class="input input-bordered w-full"
-              @input="loadTenants"
-            />
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Statut du bail</span>
-            </label>
-            <select v-model="filters.leaseStatus" class="select select-bordered w-full" @change="loadTenants">
-              <option value="">Tous les statuts</option>
-              <option value="active">Bail actif</option>
-              <option value="inactive">Sans bail</option>
-            </select>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Bien</span>
-            </label>
-            <select v-model="filters.property" class="select select-bordered w-full" @change="loadTenants">
-              <option value="">Tous les biens</option>
-              <option v-for="property in properties" :key="property.id" :value="property.id">
-                {{ property.name }}
-              </option>
-            </select>
-          </div>
+    <div class="card bg-base-100 shadow-xl mb-3">
+      <div class="card-body py-2 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            v-model="filters.search"
+            type="text"
+            placeholder="Rechercher un locataire..."
+            class="input input-bordered input-sm w-full"
+            @input="loadTenants"
+          />
+          <select v-model="filters.leaseStatus" class="select select-bordered select-sm w-full" @change="loadTenants">
+            <option value="">Tous les statuts</option>
+            <option value="active">Bail actif</option>
+            <option value="inactive">Sans bail</option>
+          </select>
+          <select v-model="filters.property" class="select select-bordered select-sm w-full" @change="loadTenants">
+            <option value="">Tous les biens</option>
+            <option v-for="property in properties" :key="property.id" :value="property.id">
+              {{ property.name }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
@@ -79,24 +63,24 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="tenant in tenants" :key="tenant.id" class="hover h-6">
-              <td>
+            <tr v-for="tenant in tenants" :key="tenant.id" class="hover cursor-pointer" @click="viewTenant(tenant)">
+              <td class="border-r border-base-300">
                 <div class="flex items-center gap-3">
-                  <router-link :to="`/tenants/${tenant.id}`" class="avatar placeholder cursor-pointer hover:scale-110 transition-transform">
+                  <div class="avatar placeholder">
                     <div class="bg-success text-success-content rounded-lg w-10">
                       <span class="text-sm font-bold">
                         {{ tenant.firstName.charAt(0).toUpperCase() }}{{ tenant.lastName.charAt(0).toUpperCase() }}
                       </span>
                     </div>
-                  </router-link>
+                  </div>
                   <div>
                     <div class="font-medium">{{ tenant.firstName }} {{ tenant.lastName }}</div>
                     <div class="text-sm opacity-60">{{ tenant.email }}</div>
                   </div>
                 </div>
               </td>
-              <td>{{ tenant.phone }}</td>
-              <td>
+              <td class="border-r border-base-300">{{ tenant.phone }}</td>
+              <td class="border-r border-base-300">
                 <div v-if="getActiveLease(tenant)">
                   <div class="font-medium">{{ getActiveLease(tenant).Property?.name }}</div>
                   <div class="text-sm opacity-60">{{ getActiveLease(tenant).Property?.address }}</div>
@@ -105,7 +89,7 @@
                   Aucun bien
                 </span>
               </td>
-              <td class="text-right">
+              <td class="text-right border-r border-base-300">
                 <span v-if="getActiveLease(tenant)" class="font-semibold text-success">
                   {{ formatCurrency(getActiveLease(tenant).rentAmount) }}
                 </span>
@@ -113,7 +97,7 @@
                   -
                 </span>
               </td>
-              <td class="text-center">
+              <td class="text-center border-r border-base-300">
                 <div v-if="getActiveLease(tenant)" class="badge badge-success badge-sm">
                   Bail actif
                 </div>
@@ -121,7 +105,7 @@
                   Sans bail
                 </div>
               </td>
-              <td>
+              <td @click.stop>
                  <div class="flex items-center justify-center gap-2">
                   <button
                     @click="viewTenant(tenant)"

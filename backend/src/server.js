@@ -24,6 +24,7 @@ import activityRoutes from './routes/activity.routes.js';
 import dataRoutes from './routes/data.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import leaseDocumentsRoutes from './routes/lease-documents.routes.js';
+import userAccessRoutes from './routes/user-access.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -65,6 +66,7 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api', leaseDocumentsRoutes);
+app.use('/api', userAccessRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -2,28 +2,40 @@
   <Modal v-model="isOpen" title="Détails du bail" size="xl" :hide-footer="true">
     <div v-if="lease" class="space-y-4">
       <!-- Tabs -->
-      <div class="tabs tabs-boxed">
-        <a
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'info' }"
+      <div class="flex border-b border-base-300 gap-1">
+        <button
           @click="activeTab = 'info'"
+          :class="[
+            'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
+            activeTab === 'info'
+              ? 'border-primary text-primary bg-base-200'
+              : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
+          ]"
         >
           Informations
-        </a>
-        <a
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'history' }"
+        </button>
+        <button
           @click="activeTab = 'history'"
+          :class="[
+            'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
+            activeTab === 'history'
+              ? 'border-primary text-primary bg-base-200'
+              : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
+          ]"
         >
           Historique
-        </a>
-        <a
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'documents' }"
+        </button>
+        <button
           @click="activeTab = 'documents'"
+          :class="[
+            'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
+            activeTab === 'documents'
+              ? 'border-primary text-primary bg-base-200'
+              : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
+          ]"
         >
           Documents
-        </a>
+        </button>
       </div>
 
       <!-- Tab: Informations -->

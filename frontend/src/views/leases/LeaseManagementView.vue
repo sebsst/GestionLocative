@@ -1,10 +1,10 @@
 <template>
   <div class="p-4">
-    <!-- Header -->
+    <!-- En-tête -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-2xl font-bold">Gestion des Baux</h1>
-        <p class="text-sm text-base-content/70">Gérez vos baux locatifs</p>
+        <h1 class="text-2xl font-bold">Baux</h1>
+        <p class="text-sm text-base-content/70">Gestion de vos baux locatifs</p>
       </div>
       <button @click="showCreateModal = true" class="btn btn-primary gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,65 +14,29 @@
       </button>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-      <div class="stats shadow">
-        <div class="stat py-3 px-4">
-          <div class="stat-title text-xs">Baux actifs</div>
-          <div class="stat-value text-2xl">{{ activeLeases.length }}</div>
-        </div>
-      </div>
-      <div class="stats shadow">
-        <div class="stat py-3 px-4">
-          <div class="stat-title text-xs">Baux terminés</div>
-          <div class="stat-value text-2xl">{{ terminatedLeases.length }}</div>
-        </div>
-      </div>
-      <div class="stats shadow bg-success text-success-content">
-        <div class="stat py-3 px-4">
-          <div class="stat-title text-success-content/70 text-xs">Revenus mensuels</div>
-          <div class="stat-value text-2xl">{{ formatCurrency(totalMonthlyRevenue) }}</div>
-        </div>
-      </div>
-      <div class="stats shadow">
-        <div class="stat py-3 px-4">
-          <div class="stat-title text-xs">Total baux</div>
-          <div class="stat-value text-2xl">{{ leases.length }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Filters -->
+    <!-- Filtres -->
     <div class="card bg-base-100 shadow-xl mb-3">
-      <div class="card-body py-3 px-4">
+      <div class="card-body py-2 px-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div class="form-control">
-            <input
-              v-model="filters.search"
-              type="text"
-              placeholder="Rechercher..."
-              class="input input-bordered input-sm"
-            />
-          </div>
-          <div class="form-control">
-            <select v-model="filters.status" class="select select-bordered select-sm">
-              <option value="">Tous les statuts</option>
-              <option value="actif">Actif</option>
-              <option value="termine">Terminé</option>
-              <option value="resilie">Résilié</option>
-            </select>
-          </div>
-          <div class="form-control">
-            <select v-model="filters.propertyId" class="select select-bordered select-sm">
-              <option value="">Tous les biens</option>
-              <option v-for="property in properties" :key="property.id" :value="property.id">
-                {{ property.name }}
-              </option>
-            </select>
-          </div>
-          <div class="form-control">
-            <button @click="resetFilters" class="btn btn-ghost btn-sm">Réinitialiser</button>
-          </div>
+          <input
+            v-model="filters.search"
+            type="text"
+            placeholder="Rechercher un bail..."
+            class="input input-bordered input-sm w-full"
+          />
+          <select v-model="filters.status" class="select select-bordered select-sm w-full">
+            <option value="">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="termine">Terminé</option>
+            <option value="resilie">Résilié</option>
+          </select>
+          <select v-model="filters.propertyId" class="select select-bordered select-sm w-full">
+            <option value="">Tous les biens</option>
+            <option v-for="property in properties" :key="property.id" :value="property.id">
+              {{ property.name }}
+            </option>
+          </select>
+          <button @click="resetFilters" class="btn btn-ghost btn-sm">Réinitialiser</button>
         </div>
       </div>
     </div>
@@ -87,43 +51,43 @@
       <div class="overflow-x-auto">
         <table class="table table-zebra">
           <thead class="bg-base-200">
-            <tr>
-              <th>Bien</th>
-              <th>Locataire</th>
-              <th>Période</th>
-              <th class="text-right">Loyer</th>
-              <th class="text-center">Statut</th>
-              <th class="text-center">Documents</th>
+            <tr class="border-b-2 border-base-300">
+              <th class="border-r border-base-300">Bien</th>
+              <th class="border-r border-base-300">Locataire</th>
+              <th class="border-r border-base-300">Période</th>
+              <th class="text-right border-r border-base-300">Loyer</th>
+              <th class="text-center border-r border-base-300">Statut</th>
+              <th class="text-center border-r border-base-300">Documents</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="lease in filteredLeases" :key="lease.id" class="hover">
-              <td>
+            <tr v-for="lease in filteredLeases" :key="lease.id" class="hover cursor-pointer" @click="openDetailsModal(lease)">
+              <td class="border-r border-base-300">
                 <div class="font-medium">{{ lease.Property?.name }}</div>
                 <div class="text-xs opacity-60">{{ lease.Property?.address }}</div>
               </td>
-              <td>
+              <td class="border-r border-base-300">
                 <div class="font-medium">{{ lease.Tenant?.firstName }} {{ lease.Tenant?.lastName }}</div>
                 <div class="text-xs opacity-60">{{ lease.Tenant?.email }}</div>
               </td>
-              <td>
+              <td class="border-r border-base-300">
                 <div class="text-sm">{{ formatDate(lease.startDate) }}</div>
                 <div class="text-xs opacity-60">
                   {{ lease.endDate ? '→ ' + formatDate(lease.endDate) : 'En cours' }}
                 </div>
               </td>
-              <td class="text-right font-semibold">
+              <td class="text-right font-semibold border-r border-base-300">
                 {{ formatCurrency(parseFloat(lease.rentAmount) + parseFloat(lease.chargesAmount || 0)) }}
               </td>
-              <td class="text-center">
+              <td class="text-center border-r border-base-300">
                 <div class="badge badge-sm" :class="getStatusBadgeClass(lease.status)">
                   {{ getStatusLabel(lease.status) }}
                 </div>
               </td>
-              <td class="text-center">
-                <button 
-                  @click="openDocumentsModal(lease)" 
+              <td class="text-center border-r border-base-300" @click.stop>
+                <button
+                  @click="openDocumentsModal(lease)"
                   class="btn btn-ghost btn-xs gap-1"
                   :class="{ 'text-primary': lease.documentsCount > 0 }"
                 >
@@ -133,7 +97,7 @@
                   {{ lease.documentsCount || 0 }}
                 </button>
               </td>
-              <td>
+              <td @click.stop>
                 <div class="flex items-center justify-center gap-1">
                   <button
                     @click="openDetailsModal(lease)"
@@ -252,14 +216,6 @@ const filters = reactive({
 });
 
 // Computed
-const activeLeases = computed(() => leases.value.filter(l => l.status === 'actif'));
-const terminatedLeases = computed(() => leases.value.filter(l => l.status === 'termine'));
-const totalMonthlyRevenue = computed(() => {
-  return activeLeases.value.reduce((sum, lease) => {
-    return sum + parseFloat(lease.rentAmount || 0) + parseFloat(lease.chargesAmount || 0);
-  }, 0);
-});
-
 const filteredLeases = computed(() => {
   let result = leases.value;
 

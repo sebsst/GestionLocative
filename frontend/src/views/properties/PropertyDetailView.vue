@@ -43,7 +43,7 @@
     <!-- Content -->
     <div v-else-if="property" class="space-y-6">
       <!-- Header -->
-      <PropertyHeader :property="property" />
+      <PropertyHeader :property="property" @share="showSharingModal = true" />
 
       <!-- Stats Cards -->
       <PropertyStats :property="property" />
@@ -62,11 +62,11 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body p-0">
           <!-- Tab Navigation -->
-          <div class="flex border-b border-base-300">
+          <div class="flex border-b border-base-300 gap-1">
             <button
               @click="switchTab('leases')"
               :class="[
-                'px-6 py-3 font-medium transition-colors border-b-2',
+                'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
                 activeTab === 'leases'
                   ? 'border-primary text-primary bg-base-200'
                   : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
@@ -77,7 +77,7 @@
             <button
               @click="switchTab('info')"
               :class="[
-                'px-6 py-3 font-medium transition-colors border-b-2',
+                'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
                 activeTab === 'info'
                   ? 'border-primary text-primary bg-base-200'
                   : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
@@ -88,7 +88,7 @@
             <button
               @click="switchTab('documents')"
               :class="[
-                'px-6 py-3 font-medium transition-colors border-b-2',
+                'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
                 activeTab === 'documents'
                   ? 'border-primary text-primary bg-base-200'
                   : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
@@ -99,7 +99,7 @@
             <button
               @click="switchTab('finances')"
               :class="[
-                'px-6 py-3 font-medium transition-colors border-b-2',
+                'px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap',
                 activeTab === 'finances'
                   ? 'border-primary text-primary bg-base-200'
                   : 'border-transparent text-base-content/70 hover:text-base-content hover:bg-base-200'
@@ -170,6 +170,12 @@
         </div>
       </div>
     </div>
+
+    <!-- Property Sharing Modal -->
+    <PropertySharingModal
+      v-model="showSharingModal"
+      :property-id="property?.id"
+    />
 
     <!-- Occupancy Modal -->
     <LeaseOccupancyModal
@@ -370,6 +376,7 @@ import PropertyInfoTab from '@/components/properties/PropertyInfoTab.vue'
 import PropertyLeasesTab from '@/components/properties/PropertyLeasesTab.vue'
 import PropertyDocumentsTab from '@/components/properties/PropertyDocumentsTab.vue'
 import PropertyFinancialsTab from '@/components/properties/PropertyFinancialsTab.vue'
+import PropertySharingModal from '@/components/modals/PropertySharingModal.vue'
 
 // Skeleton components
 import SkeletonStats from '@/components/ui/SkeletonStats.vue'
@@ -385,6 +392,7 @@ const notFound = ref(false)
 const activeTab = ref('leases')
 const showOccupancyModal = ref(false)
 const showRentPeriodModal = ref(false)
+const showSharingModal = ref(false)
 const showEditLeaseModal = ref(false)
 const showDocumentUploadModal = ref(false)
 const showEndLeaseModal = ref(false)

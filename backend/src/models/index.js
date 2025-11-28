@@ -20,6 +20,28 @@ import PropertyRentHistory from './PropertyRentHistory.js';
 import FiscalDeclaration from './FiscalDeclaration.js';
 import Document from './Document.js';
 import LeaseDocument from './LeaseDocument.js';
+import UserPropertyAccess from './UserPropertyAccess.js';
+
+// User associations
+User.hasMany(Property, { foreignKey: 'userId', as: 'properties' });
+Property.belongsTo(User, { foreignKey: 'userId', as: 'owner' });
+
+User.hasMany(Tenant, { foreignKey: 'userId', as: 'tenants' });
+Tenant.belongsTo(User, { foreignKey: 'userId', as: 'owner' });
+
+User.hasMany(Artisan, { foreignKey: 'userId', as: 'artisans' });
+Artisan.belongsTo(User, { foreignKey: 'userId', as: 'owner' });
+
+User.hasMany(FiscalDeclaration, { foreignKey: 'userId', as: 'fiscalDeclarations' });
+FiscalDeclaration.belongsTo(User, { foreignKey: 'userId', as: 'owner' });
+
+// UserPropertyAccess associations (property sharing)
+User.hasMany(UserPropertyAccess, { foreignKey: 'userId', as: 'sharedProperties' });
+User.hasMany(UserPropertyAccess, { foreignKey: 'grantedBy', as: 'grantedAccesses' });
+Property.hasMany(UserPropertyAccess, { foreignKey: 'propertyId', as: 'sharedWith' });
+UserPropertyAccess.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+UserPropertyAccess.belongsTo(User, { foreignKey: 'grantedBy', as: 'grantor' });
+UserPropertyAccess.belongsTo(Property, { foreignKey: 'propertyId', as: 'property' });
 
 // Property associations
 Property.belongsTo(Property, { as: 'building', foreignKey: 'buildingId' });
@@ -130,5 +152,6 @@ export {
   PropertyRentHistory,
   FiscalDeclaration,
   Document,
-  LeaseDocument
+  LeaseDocument,
+  UserPropertyAccess
 };
